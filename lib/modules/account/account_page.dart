@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:web_cloner/modules/account/account_controller.dart';
 
 class AccountPage extends GetView<AccountController> {
@@ -74,6 +73,9 @@ class AccountPage extends GetView<AccountController> {
                       itemCount: controller.accounts.length,
                       itemBuilder: (context, index) {
                         final account = controller.accounts[index];
+                        final isLoggedIn =
+                            account.cookies != null &&
+                            account.cookies!.isNotEmpty;
                         return Card(
                           margin: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -101,16 +103,42 @@ class AccountPage extends GetView<AccountController> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Username: ${account.name}'),
-                                Text(
-                                  'Created: ${DateFormat('yyyy-MM-dd').format(account.createdAt)}',
-                                  style: const TextStyle(fontSize: 12),
+                                Text('URL: ${account.url}'),
+                                const SizedBox(height: 4),
+                                Chip(
+                                  label: Text(
+                                    isLoggedIn ? 'Logged In' : 'Not Logged In',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isLoggedIn
+                                          ? Colors.green.shade800
+                                          : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  backgroundColor: isLoggedIn
+                                      ? Colors.green.shade100
+                                      : Colors.grey.shade200,
+                                  side: BorderSide.none,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 0,
+                                  ),
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                               ],
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.login,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                  onPressed: () => controller.login(account),
+                                  tooltip: 'Login and save cookies',
+                                ),
                                 IconButton(
                                   icon: const Icon(Icons.edit),
                                   onPressed: () =>

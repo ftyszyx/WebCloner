@@ -33,7 +33,9 @@ dependencies:
   intl: ^0.20.2
   flutter_smart_dialog: ^4.9.2
   remixicon: ^1.4.1
-  puppeteer: ^3.19.0
+  # puppeteer: ^3.19.0
+  puppeteer:
+    path: packages/puppeteer
   dio: ^5.9.0
 
 dev_dependencies:

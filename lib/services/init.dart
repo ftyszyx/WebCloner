@@ -12,5 +12,6 @@ class ServiceManager {
     await Get.put(TaskService()).init();
     await Get.put(WebCloneService()).init();
     await logger.initialize();
+    WebCloneService.instance.startLoop();
   }
 }

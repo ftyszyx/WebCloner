@@ -11,6 +11,9 @@ class Account extends HiveObject {
   @HiveField(1)
   String name;
 
+  @HiveField(2)
+  String url;
+
   @HiveField(5)
   DateTime createdAt;
 
@@ -20,6 +23,7 @@ class Account extends HiveObject {
   Account({
     required this.id,
     required this.name,
+    required this.url,
     this.cookies,
     required this.createdAt,
   });
@@ -28,6 +32,7 @@ class Account extends HiveObject {
     return {
       'id': id,
       'name': name,
+      'url': url,
       'cookies': jsonEncode(cookies),
       'createdAt': createdAt.toIso8601String(),
     };

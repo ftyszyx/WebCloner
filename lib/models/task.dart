@@ -26,6 +26,7 @@ class Task extends HiveObject {
   @HiveField(10)
   String url;
 
+  //可以用正则表达式过滤url
   @HiveField(11)
   String? urlPattern;
 
@@ -78,6 +79,7 @@ class Task extends HiveObject {
     this.outputPath,
     this.errorMessage,
     this.maxPages = 0,
+    this.accountId,
   });
 
   double get progress {
@@ -101,6 +103,7 @@ class Task extends HiveObject {
       'outputPath': outputPath,
       'errorMessage': errorMessage,
       'maxPages': maxPages,
+      'accountId': accountId,
     };
   }
 

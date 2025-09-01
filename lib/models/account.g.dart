@@ -19,6 +19,7 @@ class AccountAdapter extends TypeAdapter<Account> {
     return Account(
       id: fields[0] as String,
       name: fields[1] as String,
+      url: fields[2] as String,
       cookies: (fields[8] as List?)?.cast<Cookie>(),
       createdAt: fields[5] as DateTime,
     );
@@ -27,11 +28,13 @@ class AccountAdapter extends TypeAdapter<Account> {
   @override
   void write(BinaryWriter writer, Account obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
+      ..writeByte(2)
+      ..write(obj.url)
       ..writeByte(5)
       ..write(obj.createdAt)
       ..writeByte(8)

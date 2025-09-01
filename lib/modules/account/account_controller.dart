@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:web_cloner/models/account.dart';
 import 'package:web_cloner/services/account_service.dart';
+import 'package:web_cloner/services/brower_service.dart';
+import 'package:web_cloner/services/logger.dart';
 import 'package:web_cloner/widgets/account_form_dialog.dart';
 
 class AccountController extends GetxController {
@@ -31,6 +33,53 @@ class AccountController extends GetxController {
     );
     if (result != null) {
       await _accountService.updateAccount(result);
+      loadAccounts();
+    }
+  }
+
+  Future<void> login(Account account) async {
+    BrowserSession? session;
+    try {
+      session = await BrowerService.instance.runBrowser(
+        url: account.url,
+        forceShowBrowser: true,
+      );
+
+      final confirmed = await Get.dialog<bool>(
+        AlertDialog(
+          title: const Text('Login Process'),
+          content: const Text(
+            'A browser window has been opened. Please complete the login process, then click "Save" to capture the cookies.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Get.back(result: true),
+              child: const Text('Save Cookies'),
+            ),
+          ],
+        ),
+        barrierDismissible: false,
+      );
+
+      if (confirmed == true) {
+        final cookies = await session.page?.cookies();
+        if (cookies != null && cookies.isNotEmpty) {
+          account.cookies = cookies;
+          await _accountService.updateAccount(account);
+          Get.snackbar('Success', 'Cookies saved successfully!');
+        } else {
+          Get.snackbar('Warning', 'No cookies were captured.');
+        }
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to open browser or save cookies: $e');
+      logger.error('Login failed for account ${account.name}', error: e);
+    } finally {
+      await session?.close();
       loadAccounts();
     }
   }
