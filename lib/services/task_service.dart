@@ -1,7 +1,9 @@
 import 'package:hive/hive.dart';
 import 'package:web_cloner/models/task.dart';
+import 'package:get/get.dart';
 
 class TaskService {
+  static TaskService get instance => Get.find<TaskService>();
   static const String _boxName = 'tasks';
   late Box<Task> _box;
 
@@ -26,50 +28,41 @@ class TaskService {
   }
 
   Future<void> deleteTask(String id) async {
+    await pauseTask(id);
     await _box.delete(id);
-  }
-
-  Future<void> startTask(String id) async {
-    final task = await getTaskById(id);
-    if (task != null) {
-      final updatedTask = task.copyWith(
-        status: TaskStatus.running,
-        startedAt: DateTime.now(),
-      );
-      await updateTask(updatedTask);
-    }
   }
 
   Future<void> pauseTask(String id) async {
     final task = await getTaskById(id);
     if (task != null) {
-      final updatedTask = task.copyWith(
-        status: TaskStatus.paused,
-      );
-      await updateTask(updatedTask);
+      task.status = TaskStatus.paused;
+      await updateTask(task);
     }
   }
 
-  Future<void> completeTask(String id) async {
+  Future<void> completeTask(
+    String id,
+    int total,
+    int completed,
+    String outputPath,
+  ) async {
     final task = await getTaskById(id);
     if (task != null) {
-      final updatedTask = task.copyWith(
-        status: TaskStatus.completed,
-        completedAt: DateTime.now(),
-        completedPages: task.totalPages,
-      );
-      await updateTask(updatedTask);
+      task.status = TaskStatus.completed;
+      task.completedAt = DateTime.now();
+      task.completedPages = completed;
+      task.totalPages = total;
+      task.outputPath = outputPath;
+      await updateTask(task);
     }
   }
 
   Future<void> failTask(String id, String errorMessage) async {
     final task = await getTaskById(id);
     if (task != null) {
-      final updatedTask = task.copyWith(
-        status: TaskStatus.failed,
-        errorMessage: errorMessage,
-      );
-      await updateTask(updatedTask);
+      task.status = TaskStatus.failed;
+      task.errorMessage = errorMessage;
+      await updateTask(task);
     }
   }
 

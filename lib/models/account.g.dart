@@ -19,35 +19,23 @@ class AccountAdapter extends TypeAdapter<Account> {
     return Account(
       id: fields[0] as String,
       name: fields[1] as String,
-      username: fields[2] as String,
-      password: fields[3] as String,
-      platform: fields[4] as String,
+      cookies: (fields[8] as List?)?.cast<Cookie>(),
       createdAt: fields[5] as DateTime,
-      lastLoginAt: fields[6] as DateTime?,
-      isActive: fields[7] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Account obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
-      ..writeByte(2)
-      ..write(obj.username)
-      ..writeByte(3)
-      ..write(obj.password)
-      ..writeByte(4)
-      ..write(obj.platform)
       ..writeByte(5)
       ..write(obj.createdAt)
-      ..writeByte(6)
-      ..write(obj.lastLoginAt)
-      ..writeByte(7)
-      ..write(obj.isActive);
+      ..writeByte(8)
+      ..write(obj.cookies);
   }
 
   @override

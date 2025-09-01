@@ -1,7 +1,9 @@
 import 'package:hive/hive.dart';
+import 'package:get/get.dart';
 import 'package:web_cloner/models/account.dart';
 
 class AccountService {
+  static AccountService get instance => Get.find<AccountService>();
   static const String _boxName = 'accounts';
   late Box<Account> _box;
 
@@ -27,14 +29,6 @@ class AccountService {
 
   Future<void> deleteAccount(String id) async {
     await _box.delete(id);
-  }
-
-  Future<List<Account>> getActiveAccounts() async {
-    return _box.values.where((account) => account.isActive).toList();
-  }
-
-  Future<List<Account>> getAccountsByPlatform(String platform) async {
-    return _box.values.where((account) => account.platform == platform).toList();
   }
 
   void dispose() {

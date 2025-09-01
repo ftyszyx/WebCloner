@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
+import 'package:web_cloner/modules/account/account_controller.dart';
 import 'package:web_cloner/modules/account/account_page.dart';
+import 'package:web_cloner/modules/task/task_controller.dart';
 import 'package:web_cloner/modules/task/task_page.dart';
 import 'package:web_cloner/modules/home/home_page.dart';
 
@@ -11,17 +13,20 @@ class AppPages {
   static const initial = Routes.home;
 
   static final routes = [
-    GetPage(
-      name: Routes.home,
-      page: () => const HomePage(),
-    ),
+    GetPage(name: Routes.home, page: () => const HomePage()),
     GetPage(
       name: Routes.account,
       page: () => const AccountPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AccountController());
+      }),
     ),
     GetPage(
       name: Routes.task,
       page: () => const TaskPage(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => TaskController());
+      }),
     ),
   ];
 }

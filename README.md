@@ -44,31 +44,6 @@ flutter packages pub run build_runner build
 flutter run -d windows
 ```
 
-## 项目结构
-
-```
-lib/
-├── main.dart                 # 应用入口
-├── models/                   # 数据模型
-│   ├── account.dart         # 账号模型
-│   └── task.dart            # 任务模型
-├── modules/                  # 功能模块
-│   ├── home/                # 主页面
-│   ├── account/             # 账号管理
-│   └── task/                # 任务管理
-├── services/                 # 服务层
-│   ├── account_service.dart # 账号服务
-│   ├── task_service.dart    # 任务服务
-│   └── web_clone_service.dart # 网页克隆服务
-├── routes/                   # 路由配置
-│   └── app_pages.dart       # 应用路由
-├── utils/                    # 工具类
-│   ├── common.dart          # 通用工具
-│   └── logger.dart          # 日志工具
-└── widgets/                  # 通用组件
-    ├── account_form_dialog.dart # 账号表单对话框
-    └── task_form_dialog.dart    # 任务表单对话框
-```
 
 ## 使用说明
 

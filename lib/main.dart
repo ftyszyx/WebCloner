@@ -3,14 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:web_cloner/models/account.dart';
-import 'package:web_cloner/models/task.dart';
+import 'package:web_cloner/models/init.dart';
 import 'package:web_cloner/routes/app_pages.dart';
-import 'package:web_cloner/services/account_service.dart';
-import 'package:web_cloner/services/task_service.dart';
-import 'package:web_cloner/services/web_clone_service.dart';
+import 'package:web_cloner/services/init.dart';
 import 'package:web_cloner/utils/common.dart';
-import 'package:web_cloner/utils/logger.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -44,13 +40,9 @@ Future initWindow() async {
 }
 
 Future initServices() async {
-  Hive.registerAdapter(AccountAdapter());
-  Hive.registerAdapter(TaskAdapter());
+  await ModelManager.init();
   CommonUtils.packageInfo = await PackageInfo.fromPlatform();
-  await Get.put(AccountService()).init();
-  await Get.put(TaskService()).init();
-  await Get.put(WebCloneService()).init();
-  await logger.initialize();
+  await ServiceManager.init();
 }
 
 class MyApp extends StatelessWidget {
@@ -70,10 +62,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en', 'US'),
-        Locale('zh', 'CN'),
-      ],
+      supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
       builder: FlutterSmartDialog.init(),

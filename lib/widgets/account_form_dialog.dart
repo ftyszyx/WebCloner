@@ -1,55 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_cloner/models/account.dart';
 
-class AccountFormDialog extends StatefulWidget {
+class AccountFormDialog extends StatelessWidget {
   final Account? account;
 
   const AccountFormDialog({super.key, this.account});
 
   @override
-  State<AccountFormDialog> createState() => _AccountFormDialogState();
-}
-
-class _AccountFormDialogState extends State<AccountFormDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _platformController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.account != null) {
-      _nameController.text = widget.account!.name;
-      _usernameController.text = widget.account!.username;
-      _passwordController.text = widget.account!.password;
-      _platformController.text = widget.account!.platform;
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _usernameController.dispose();
-    _passwordController.dispose();
-    _platformController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.put(_AccountFormDialogController(account));
     return AlertDialog(
-      title: Text(widget.account == null ? 'Add Account' : 'Edit Account'),
+      title: Text(account == null ? 'Add Account' : 'Edit Account'),
       content: Form(
-        key: _formKey,
+        key: controller.formKey,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
-                controller: _nameController,
+                controller: controller.nameController,
                 decoration: const InputDecoration(
                   labelText: 'Account Name',
                   border: OutlineInputBorder(),
@@ -63,7 +34,7 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _usernameController,
+                controller: controller.usernameController,
                 decoration: const InputDecoration(
                   labelText: 'Username',
                   border: OutlineInputBorder(),
@@ -77,7 +48,7 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _passwordController,
+                controller: controller.passwordController,
                 decoration: const InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
@@ -92,7 +63,7 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _platformController,
+                controller: controller.platformController,
                 decoration: const InputDecoration(
                   labelText: 'Platform',
                   border: OutlineInputBorder(),
@@ -109,31 +80,52 @@ class _AccountFormDialogState extends State<AccountFormDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
+        TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
         ElevatedButton(
-          onPressed: _saveAccount,
-          child: Text(widget.account == null ? 'Add' : 'Save'),
+          onPressed: () => controller.saveAccount(),
+          child: Text(account == null ? 'Add' : 'Save'),
         ),
       ],
     );
   }
+}
 
-  void _saveAccount() {
-    if (_formKey.currentState!.validate()) {
-      final account = Account(
-        id: widget.account?.id ?? const Uuid().v4(),
-        name: _nameController.text,
-        username: _usernameController.text,
-        password: _passwordController.text,
-        platform: _platformController.text,
-        createdAt: widget.account?.createdAt ?? DateTime.now(),
-        lastLoginAt: widget.account?.lastLoginAt,
-        isActive: widget.account?.isActive ?? true,
+class _AccountFormDialogController extends GetxController {
+  final Account? account;
+  _AccountFormDialogController(this.account);
+
+  final formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController();
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
+  final platformController = TextEditingController();
+
+  @override
+  void onInit() {
+    super.onInit();
+    if (account != null) {
+      nameController.text = account!.name;
+      usernameController.text = account!.name;
+    }
+  }
+
+  @override
+  void onClose() {
+    nameController.dispose();
+    usernameController.dispose();
+    passwordController.dispose();
+    platformController.dispose();
+    super.onClose();
+  }
+
+  void saveAccount() {
+    if (formKey.currentState!.validate()) {
+      final newAccount = Account(
+        id: account?.id ?? const Uuid().v4(),
+        name: nameController.text,
+        createdAt: account?.createdAt ?? DateTime.now(),
       );
-      Navigator.of(context).pop(account);
+      Get.back(result: newAccount);
     }
   }
 }

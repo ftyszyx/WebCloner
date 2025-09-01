@@ -1,53 +1,129 @@
+import 'dart:collection';
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:convert';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
+import 'package:get/get.dart';
 import 'package:web_cloner/models/task.dart';
-import 'package:web_cloner/utils/logger.dart';
+import 'package:web_cloner/services/app_config_service.dart';
+import 'package:web_cloner/services/logger.dart';
+import 'package:web_cloner/services/brower_service.dart';
+import 'package:web_cloner/services/account_service.dart';
+import 'package:web_cloner/services/task_service.dart';
+import 'package:puppeteer/puppeteer.dart';
+import 'package:puppeteer/protocol/network.dart' as puppeteer_network;
+
+class WebInfo {
+  String title;
+  String url;
+  String pngPath;
+  WebInfo({required this.title, required this.url, required this.pngPath});
+}
 
 class WebCloneService {
-  static const String _outputDir = 'cloned_sites';
+  static WebCloneService get instance => Get.find<WebCloneService>();
 
-  Future<void> init() async {
-    // 创建输出目录
-    final appDir = await getApplicationSupportDirectory();
-    final outputPath = path.join(appDir.path, _outputDir);
-    final outputDir = Directory(outputPath);
-    if (!await outputDir.exists()) {
-      await outputDir.create(recursive: true);
+  List<Task> tasks = [];
+  Future<void> init() async {}
+
+  Future<void> startLoop() async {
+    while (true) {
+      await Future.delayed(const Duration(seconds: 1));
+      for (var task in tasks) {
+        if (task.status == TaskStatus.pending) {
+          await cloneWebsite(task);
+        }
+      }
     }
+  }
+
+  Future<void> addTask(Task task) async {
+    task.status = TaskStatus.pending;
+    tasks.add(task);
   }
 
   Future<void> cloneWebsite(Task task) async {
+    BrowserSession? session;
+    final List<WebInfo> okWebInfos = [];
+    int totalPages = 0;
     try {
       logger.info('Starting website clone for task: ${task.name}');
-      
       // 创建任务特定的输出目录
       final outputPath = await _createTaskOutputDir(task);
-      
-      switch (task.type) {
-        case TaskType.singlePage:
-          await _cloneSinglePage(task, outputPath);
-          break;
-        case TaskType.multiPage:
-          await _cloneMultiPage(task, outputPath);
-          break;
-        case TaskType.fullSite:
-          await _cloneFullSite(task, outputPath);
-          break;
+      _getOkForUrls(task, okWebInfos);
+      final Set<String> visitedUrls = okWebInfos.map((e) => e.url).toSet();
+      final Queue<String> needVisitUrls = Queue();
+      totalPages = visitedUrls.length;
+      List<puppeteer_network.Cookie> cookies = [];
+      if (task.accountId != null && task.accountId!.isNotEmpty) {
+        try {
+          final account = await AccountService.instance.getAccountById(
+            task.accountId!,
+          );
+          cookies = account?.cookies ?? [];
+        } catch (e) {
+          logger.error('读取账号Cookies失败: $e');
+        }
       }
-      
-      logger.info('Website clone completed for task: ${task.name}');
+      session = await BrowerService.instance.runBrowser(
+        url: task.url,
+        cookies: cookies,
+        forceShowBrowser: true,
+      );
+      needVisitUrls.add(task.url);
+      while (needVisitUrls.isNotEmpty) {
+        final url = needVisitUrls.removeFirst();
+        final webInfo = WebInfo(
+          url: url,
+          pngPath: path.join(outputPath, '${url.hashCode}.png'),
+          title: '',
+        );
+        visitedUrls.add(url);
+        final (isOk, errMesg) = await _scrawlSite(session, webInfo, (url) {
+          if (visitedUrls.contains(url)) {
+            return;
+          }
+          if (_checkUrlIsValid(url, task) == false) {
+            return;
+          }
+          needVisitUrls.add(url);
+          totalPages++;
+        });
+        if (isOk) {
+          okWebInfos.add(webInfo);
+        }
+        if (task.status == TaskStatus.paused) {
+          break;
+        }
+      }
+      logger.info("write result");
+      if (okWebInfos.isNotEmpty) {
+        await _generateIndexHtml(okWebInfos, task);
+        await _saveOkForUrls(okWebInfos, task);
+      }
+      task.status = TaskStatus.completed;
+      TaskService.instance.completeTask(
+        task.id,
+        totalPages,
+        okWebInfos.length,
+        outputPath,
+      );
     } catch (e) {
       logger.error('Error cloning website for task: ${task.name}', error: e);
-      rethrow;
+      TaskService.instance.failTask(task.id, e.toString());
+    } finally {
+      await session?.close();
     }
   }
 
+  String _getTaskOutputDir(Task task) {
+    return path.join(AppConfigService.instance.outputDir, task.id);
+  }
+
+  String _getTaskOkFileListPath(Task task) {
+    return path.join(_getTaskOutputDir(task), 'ok.txt');
+  }
+
   Future<String> _createTaskOutputDir(Task task) async {
-    final appDir = await getApplicationSupportDirectory();
-    final taskDir = path.join(appDir.path, _outputDir, task.id);
+    final taskDir = _getTaskOutputDir(task);
     final dir = Directory(taskDir);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
@@ -55,105 +131,107 @@ class WebCloneService {
     return taskDir;
   }
 
-  Future<void> _cloneSinglePage(Task task, String outputPath) async {
-    // 单页面克隆逻辑
-    await _captureScreenshot(task.url, outputPath, 'page.png');
-    await _saveHtml(task.url, outputPath, 'page.html');
-    await _generateDirectory(outputPath, [task.url]);
-  }
-
-  Future<void> _cloneMultiPage(Task task, String outputPath) async {
-    // 多页面克隆逻辑
-    final urls = await _extractPageUrls(task.url);
-    task = task.copyWith(totalPages: urls.length);
-    
-    for (int i = 0; i < urls.length; i++) {
-      final url = urls[i];
-      final fileName = 'page_${(i + 1).toString().padLeft(3, '0')}';
-      
-      await _captureScreenshot(url, outputPath, '$fileName.png');
-      await _saveHtml(url, outputPath, '$fileName.html');
-      
-      // 更新任务进度
-      task = task.copyWith(completedPages: i + 1);
-    }
-    
-    await _generateDirectory(outputPath, urls);
-  }
-
-  Future<void> _cloneFullSite(Task task, String outputPath) async {
-    // 全站克隆逻辑
-    final urls = await _crawlSite(task.url);
-    task = task.copyWith(totalPages: urls.length);
-    
-    for (int i = 0; i < urls.length; i++) {
-      final url = urls[i];
-      final fileName = 'page_${(i + 1).toString().padLeft(3, '0')}';
-      
-      await _captureScreenshot(url, outputPath, '$fileName.png');
-      await _saveHtml(url, outputPath, '$fileName.html');
-      
-      // 更新任务进度
-      task = task.copyWith(completedPages: i + 1);
-    }
-    
-    await _generateDirectory(outputPath, urls);
-  }
-
-  Future<void> _captureScreenshot(String url, String outputPath, String fileName) async {
-    // 这里应该实现实际的截图逻辑
-    // 可以使用webview_flutter或其他截图库
-    logger.info('Capturing screenshot for: $url');
-    
-    // 模拟截图过程
-    await Future.delayed(const Duration(seconds: 1));
-    
-    // 创建占位图片文件
-    final file = File(path.join(outputPath, fileName));
-    await file.writeAsBytes(Uint8List(0));
-  }
-
-  Future<void> _saveHtml(String url, String outputPath, String fileName) async {
-    // 保存HTML内容
-    logger.info('Saving HTML for: $url');
-    
+  //爬取网站
+  Future<(bool, String)> _scrawlSite(
+    BrowserSession session,
+    WebInfo info,
+    Function(String) onAddNewUrl,
+  ) async {
+    await session.page?.goto(
+      info.url,
+      wait: Until.domContentLoaded,
+      timeout: const Duration(minutes: 10),
+    );
     try {
-      final response = await HttpClient().getUrl(Uri.parse(url));
-      final httpResponse = await response.close();
-      final html = await httpResponse.transform(utf8.decoder).join();
-      
-      final file = File(path.join(outputPath, fileName));
-      await file.writeAsString(html);
-    } catch (e) {
-      logger.error('Error saving HTML for: $url', error: e);
+      final bytes = await session.page?.screenshot(fullPage: true);
+      if (bytes != null) {
+        final file = File(info.pngPath);
+        await file.writeAsBytes(bytes);
+      }
+    } catch (e, s) {
+      logger.error('截图失败: $info.url, ', error: e, stackTrace: s);
+      return (false, "截图失败: $info.url, $e");
+    }
+    //get title
+    final title = await session.page?.title ?? '';
+    info.title = title;
+    //get all links from html
+    final links = await session.page?.evaluate<List<dynamic>>(
+      '() => Array.from(document.querySelectorAll("a[href]")).map(a => new URL(a.getAttribute("href"), document.baseURI).href)',
+    );
+    if (links != null) {
+      for (var link in links) {
+        final url = Uri.parse(link).toString();
+        onAddNewUrl(url);
+      }
+    }
+    return (true, "");
+  }
+
+  Future<void> _saveOkForUrls(List<WebInfo> items, Task task) async {
+    final outputPath = _getTaskOkFileListPath(task);
+    await File(outputPath).writeAsString(
+      items
+          .map((e) => '${Uri.encodeFull(e.url)}|${e.pngPath}|${e.title}')
+          .join('\n'),
+    );
+  }
+
+  Future<void> _generateIndexHtml(List<WebInfo> items, Task task) async {
+    final outputPath = _getTaskOutputDir(task);
+    final buf = StringBuffer();
+    buf.writeln('<!DOCTYPE html>');
+    buf.writeln(
+      '<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Web Cloner Index</title>',
+    );
+    buf.writeln(
+      '<style>body{max-width:1000px;margin:0 auto;padding:24px;font-family:system-ui}ul{list-style:none;padding:0;display:grid;gap:10px}li{border:1px solid #ddd;border-radius:6px;padding:10px}</style>',
+    );
+    buf.writeln('</head><body><h1>克隆页面索引</h1><ul>');
+    for (int i = 0; i < items.length; i++) {
+      final it = items[i];
+      final pngName = path.basename(it.pngPath);
+      buf.writeln(
+        '<li>${i + 1}. <a href="$pngName">${_escapeHtml(it.title)}</a> — <small>${_escapeHtml(it.url)}</small></li>',
+      );
+    }
+    buf.writeln('</ul></body></html>');
+    final file = File(path.join(outputPath, 'index.html'));
+    await file.writeAsString(buf.toString());
+  }
+
+  String _escapeHtml(String input) {
+    return input
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+  }
+
+  void _getOkForUrls(Task task, List<WebInfo> okList) async {
+    final savePath = _getTaskOkFileListPath(task);
+    if (File(savePath).existsSync()) {
+      //read file from json
+      final linearr = File(savePath).readAsLinesSync();
+      for (var line in linearr) {
+        final itemarr = line.split('|');
+        okList.add(
+          WebInfo(url: itemarr[0], pngPath: itemarr[1], title: itemarr[2]),
+        );
+      }
     }
   }
 
-  Future<List<String>> _extractPageUrls(String baseUrl) async {
-    // 提取页面URL的逻辑
-    // 这里应该实现实际的URL提取
-    return [baseUrl];
-  }
-
-  Future<List<String>> _crawlSite(String baseUrl) async {
-    // 爬取全站URL的逻辑
-    // 这里应该实现实际的网站爬取
-    return [baseUrl];
-  }
-
-  Future<void> _generateDirectory(String outputPath, List<String> urls) async {
-    // 生成网页目录
-    final directoryFile = File(path.join(outputPath, 'directory.txt'));
-    final content = StringBuffer();
-    content.writeln('Web Cloner Directory');
-    content.writeln('Generated: ${DateTime.now()}');
-    content.writeln('');
-    content.writeln('Pages:');
-    
-    for (int i = 0; i < urls.length; i++) {
-      content.writeln('${i + 1}. ${urls[i]}');
+  //  检查url是否有效
+  bool _checkUrlIsValid(String url, Task task) {
+    final Uri uri = Uri.parse(url);
+    if (!task.allowedDomains.contains(uri.host)) return false;
+    if (task.urlPattern != null && task.urlPattern!.isNotEmpty) {
+      //使用正则
+      final regex = RegExp(task.urlPattern!);
+      if (!regex.hasMatch(uri.toString())) return false;
     }
-    
-    await directoryFile.writeAsString(content.toString());
+    return true;
   }
 }
