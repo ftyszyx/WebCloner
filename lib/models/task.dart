@@ -34,6 +34,9 @@ class Task extends HiveObject {
   @HiveField(12)
   List<String> domainList;
 
+  @HiveField(13)
+  String? captureUrlPattern;
+
   @HiveField(20)
   TaskStatus status;
 
@@ -55,6 +58,9 @@ class Task extends HiveObject {
   @HiveField(42)
   int maxPages;
 
+  @HiveField(43)
+  int? captureNum;
+
   @HiveField(50)
   String? outputPath;
 
@@ -70,6 +76,7 @@ class Task extends HiveObject {
     required this.url,
     required this.domainList,
     this.urlPattern,
+    this.captureUrlPattern,
     this.status = TaskStatus.pending,
     required this.createdAt,
     this.startedAt,
@@ -79,6 +86,7 @@ class Task extends HiveObject {
     this.outputPath,
     this.errorMessage,
     this.maxPages = 0,
+    this.captureNum,
     this.accountId,
   });
 
@@ -104,6 +112,8 @@ class Task extends HiveObject {
       'errorMessage': errorMessage,
       'maxPages': maxPages,
       'accountId': accountId,
+      'captureNum': captureNum,
+      'captureUrlPattern': captureUrlPattern,
     };
   }
 
@@ -121,18 +131,25 @@ class Task extends HiveObject {
   }
 
   String? _urlPatternRegex;
-  String? get urlPatternRegex {
-    if (urlPattern == null) return null;
-    if (_urlPatternRegex != null) return _urlPatternRegex;
-    _urlPatternRegex = _wildcardToRegex(urlPattern!);
-    return _urlPatternRegex;
-  }
+
+  String? _captureUrlPatternRegex;
 
   //将通配符转换为正则表达式
   String _wildcardToRegex(String pattern) {
-    pattern = pattern.replaceAllMapped(RegExp(r'[.+?^${}()|[\]\\]'), (match) {
-      return '\\${match[0]}';
-    });
-    return pattern.replaceAll('*', '.*');
+    return pattern.replaceAll('*', '[^/]*');
+  }
+
+  bool isUrlValid(String url) {
+    if (urlPattern == null) return true;
+    _urlPatternRegex ??= _wildcardToRegex(urlPattern!);
+    final regex = RegExp(_urlPatternRegex!);
+    return regex.hasMatch(url);
+  }
+
+  bool isUrlNeedCapture(String url) {
+    if (captureUrlPattern == null) return true;
+    _captureUrlPatternRegex ??= _wildcardToRegex(captureUrlPattern!);
+    final regex = RegExp(_captureUrlPatternRegex!);
+    return regex.hasMatch(url);
   }
 }

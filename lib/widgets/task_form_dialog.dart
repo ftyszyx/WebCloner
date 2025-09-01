@@ -84,6 +84,20 @@ class TaskFormDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+                TextFormField(
+                  controller: controller.captureUrlPatternController,
+                  decoration: InputDecoration(
+                    labelText: 'Capture URL Pattern (use * as wildcard)',
+                    prefixIcon: const Icon(Icons.camera_alt),
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    hintText: 'e.g., *.html or leave empty to capture all',
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -204,6 +218,7 @@ class _TaskFormDialogController extends GetxController {
   final nameController = TextEditingController();
   final urlController = TextEditingController();
   final urlPatternController = TextEditingController();
+  final captureUrlPatternController = TextEditingController();
   final domainInputController = TextEditingController();
   final maxPagesController = TextEditingController();
 
@@ -219,6 +234,7 @@ class _TaskFormDialogController extends GetxController {
       nameController.text = task!.name;
       urlController.text = task!.url;
       urlPatternController.text = task!.urlPattern ?? '';
+      captureUrlPatternController.text = task!.captureUrlPattern ?? '';
       domainList.assignAll(task!.domainList);
       maxPagesController.text = task!.maxPages.toString();
       selectedAccountId.value = task!.accountId;
@@ -230,6 +246,7 @@ class _TaskFormDialogController extends GetxController {
     nameController.dispose();
     urlController.dispose();
     urlPatternController.dispose();
+    captureUrlPatternController.dispose();
     domainInputController.dispose();
     maxPagesController.dispose();
     super.onClose();
@@ -258,6 +275,7 @@ class _TaskFormDialogController extends GetxController {
         name: nameController.text,
         url: urlController.text,
         urlPattern: urlPatternController.text,
+        captureUrlPattern: captureUrlPatternController.text,
         domainList: domainList.toList(),
         createdAt: task?.createdAt ?? DateTime.now(),
         maxPages: int.tryParse(maxPagesController.text) ?? 0,

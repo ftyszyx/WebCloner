@@ -22,6 +22,7 @@ class TaskAdapter extends TypeAdapter<Task> {
       url: fields[10] as String,
       domainList: (fields[12] as List).cast<String>(),
       urlPattern: fields[11] as String?,
+      captureUrlPattern: fields[13] as String?,
       status: fields[20] as TaskStatus,
       createdAt: fields[30] as DateTime,
       startedAt: fields[31] as DateTime?,
@@ -31,13 +32,15 @@ class TaskAdapter extends TypeAdapter<Task> {
       outputPath: fields[50] as String?,
       errorMessage: fields[60] as String?,
       maxPages: fields[42] as int,
-    )..accountId = fields[70] as String?;
+      captureNum: fields[43] as int?,
+      accountId: fields[70] as String?,
+    );
   }
 
   @override
   void write(BinaryWriter writer, Task obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -48,6 +51,8 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..write(obj.urlPattern)
       ..writeByte(12)
       ..write(obj.domainList)
+      ..writeByte(13)
+      ..write(obj.captureUrlPattern)
       ..writeByte(20)
       ..write(obj.status)
       ..writeByte(30)
@@ -62,6 +67,8 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..write(obj.completedPages)
       ..writeByte(42)
       ..write(obj.maxPages)
+      ..writeByte(43)
+      ..write(obj.captureNum)
       ..writeByte(50)
       ..write(obj.outputPath)
       ..writeByte(60)

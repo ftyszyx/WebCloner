@@ -62,6 +62,7 @@ class TaskService {
     String id,
     int total,
     int completed,
+    int captured,
     String outputPath,
   ) async {
     final task = await getTaskById(id);
@@ -71,6 +72,7 @@ class TaskService {
       task.completedPages = completed;
       task.totalPages = total;
       task.outputPath = outputPath;
+      task.captureNum = captured;
       await updateTask(task);
     }
   }

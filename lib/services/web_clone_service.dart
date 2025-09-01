@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:developer';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:get/get.dart';
@@ -48,7 +47,7 @@ class WebCloneService {
     try {
       TaskService.instance.updateTaskStatus(task.id, TaskStatus.running);
       logger.info(
-        'Starting website clone for task: ${task.name} url: ${task.url}  urlPattern: ${task.urlPattern} urlPatternRegex: ${task.urlPatternRegex}',
+        'Starting website clone for task: ${task.name} url: ${task.url}  urlPattern: ${task.urlPattern} ',
       );
       // 创建任务特定的输出目录
       final outputPath = await _createTaskOutputDir(task);
@@ -63,6 +62,7 @@ class WebCloneService {
             task.accountId!,
           );
           cookies = account?.cookies ?? [];
+          // logger.info('读取账号Cookies成功: ${jsonEncode(cookies)}');
         } catch (e) {
           logger.error('读取账号Cookies失败: $e');
         }
@@ -86,21 +86,26 @@ class WebCloneService {
             return;
           }
           if (_checkUrlIsValid(url, task) == false) {
+            // logger.info('url is not valid: $url');
             return;
           }
           logger.info('add url: $url');
           needVisitUrls.add(url);
           totalPages++;
-        });
+        }, task);
         if (isOk) {
           okWebInfos.add(webInfo);
+          if(okWebInfos.length>task.maxPages){
+            logger.info('超过最大数量: ${task.maxPages}');
+            break;
+          }
         }
         if (task.status == TaskStatus.paused) {
           break;
         }
         await Future.delayed(const Duration(seconds: 1));
       }
-      logger.info("write result");
+      logger.info("任务结束");
       if (okWebInfos.isNotEmpty) {
         await _generateIndexHtml(okWebInfos, task);
         await _saveOkForUrls(okWebInfos, task);
@@ -109,6 +114,7 @@ class WebCloneService {
       TaskService.instance.completeTask(
         task.id,
         totalPages,
+        visitedUrls.length,
         okWebInfos.length,
         outputPath,
       );
@@ -142,6 +148,7 @@ class WebCloneService {
     BrowserSession session,
     WebInfo info,
     Function(String) onAddNewUrl,
+    Task task,
   ) async {
     logger.info('scrawlSite: ${info.url}');
     await session.page?.goto(
@@ -149,17 +156,6 @@ class WebCloneService {
       wait: Until.domContentLoaded,
       timeout: const Duration(minutes: 10),
     );
-    try {
-      logger.info('开始截图: ${info.url}');
-      final bytes = await session.page?.screenshot(fullPage: true);
-      if (bytes != null) {
-        final file = File(info.pngPath);
-        await file.writeAsBytes(bytes);
-      }
-    } catch (e, s) {
-      logger.error('截图失败: $info.url, ', error: e, stackTrace: s);
-      return (false, "截图失败: $info.url, $e");
-    }
     //get title
     final title = await session.page?.title ?? '';
     info.title = title;
@@ -174,7 +170,22 @@ class WebCloneService {
         onAddNewUrl(url);
       }
     }
-    return (true, "");
+    if (task.isUrlNeedCapture(info.url)) {
+      try {
+        logger.info('开始截图: ${info.url}');
+        final bytes = await session.page?.screenshot(fullPage: true);
+        if (bytes != null) {
+          final file = File(info.pngPath);
+          await file.writeAsBytes(bytes);
+        }
+      } catch (e, s) {
+        logger.error('截图失败: $info.url, ', error: e, stackTrace: s);
+        return (false, "截图失败: $info.url, $e");
+      }
+      return (true, "");
+    }else{
+      return (false,"url is not need capture");
+    }
   }
 
   Future<void> _saveOkForUrls(List<WebInfo> items, Task task) async {
@@ -235,19 +246,22 @@ class WebCloneService {
   //  检查url是否有效
   bool _checkUrlIsValid(String url, Task task) {
     if (url.startsWith("http") == false && url.startsWith("https") == false) {
+      // logger.info('URL is not valid: $url');
       return false;
     }
     final Uri uri = Uri.parse(url);
-    if (!task.allowedDomains.contains(uri.host)) return false;
+    if (!task.allowedDomains.contains(uri.host)) {
+      // logger.info('URL is not allowed domain: $url');
+      return false;
+    }
     if (task.urlPattern != null && task.urlPattern!.isNotEmpty) {
       try {
-        final pattern = task.urlPatternRegex!;
-        final regex = RegExp(pattern);
-        if (!regex.hasMatch(uri.path)) {
+        if (!task.isUrlValid(url)) {
+          // logger.info('URL pattern not match: $url ${task.urlPattern}');
           return false;
         }
       } catch (e) {
-        logger.error('Invalid URL pattern: ${task.urlPattern}', error: e);
+        logger.info('Invalid URL pattern: ${task.urlPattern} error: $e');
         return false;
       }
     }
