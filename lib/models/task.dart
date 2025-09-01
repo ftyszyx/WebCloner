@@ -136,14 +136,20 @@ class Task extends HiveObject {
 
   //将通配符转换为正则表达式
   String _wildcardToRegex(String pattern) {
-    return pattern.replaceAll('*', '[^/]*');
+    pattern = pattern.replaceAll('*', '[^/]*');
+    pattern = pattern.replaceAll('?', '[^/]+');
+    return pattern;
   }
 
   bool isUrlValid(String url) {
     if (urlPattern == null) return true;
     _urlPatternRegex ??= _wildcardToRegex(urlPattern!);
     final regex = RegExp(_urlPatternRegex!);
-    return regex.hasMatch(url);
+    final res = regex.hasMatch(url);
+    // if(res==false){
+    //   print('urlPattern not match: $url $_urlPatternRegex');
+    // }
+    return res;
   }
 
   bool isUrlNeedCapture(String url) {

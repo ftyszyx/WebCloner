@@ -52,7 +52,8 @@ class WebCloneService {
       // 创建任务特定的输出目录
       final outputPath = await _createTaskOutputDir(task);
       _getOkForUrls(task, okWebInfos);
-      final Set<String> visitedUrls = okWebInfos.map((e) => e.url).toSet();
+      final Set<String> okUrls = okWebInfos.map((e) => e.url).toSet();
+      final Set<String> visitedUrls = <String>{};
       final Queue<String> needVisitUrls = Queue();
       totalPages = visitedUrls.length;
       List<puppeteer_network.Cookie> cookies = [];
@@ -81,7 +82,7 @@ class WebCloneService {
           title: '',
         );
         visitedUrls.add(url);
-        final (isOk, errMesg) = await _scrawlSite(session, webInfo, (url) {
+        final (isOk, errMesg) = await _scrawlSite(session, webInfo, okUrls, (url) {
           if (visitedUrls.contains(url)) {
             return;
           }
@@ -89,13 +90,13 @@ class WebCloneService {
             // logger.info('url is not valid: $url');
             return;
           }
-          logger.info('add url: $url');
+          // logger.info('add url: $url');
           needVisitUrls.add(url);
           totalPages++;
         }, task);
         if (isOk) {
           okWebInfos.add(webInfo);
-          if(okWebInfos.length>task.maxPages){
+          if (okWebInfos.length > task.maxPages) {
             logger.info('超过最大数量: ${task.maxPages}');
             break;
           }
@@ -147,10 +148,11 @@ class WebCloneService {
   Future<(bool, String)> _scrawlSite(
     BrowserSession session,
     WebInfo info,
+    Set<String> okUrls,
     Function(String) onAddNewUrl,
     Task task,
   ) async {
-    logger.info('scrawlSite: ${info.url}');
+    logger.info('goto url: ${info.url}');
     await session.page?.goto(
       info.url,
       wait: Until.domContentLoaded,
@@ -170,8 +172,20 @@ class WebCloneService {
         onAddNewUrl(url);
       }
     }
-    if (task.isUrlNeedCapture(info.url)) {
+    if (task.isUrlNeedCapture(info.url) && okUrls.contains(info.url) == false) {
       try {
+        //wait page all images loaded
+        logger.info('等待页面所有图片加载完成');
+        await session.page?.waitForFunction('''
+  () => {
+    const images = document.querySelectorAll('img');
+    if (images.length === 0) return true;
+    
+    return Array.from(images).every(img => {
+      return img.complete && img.naturalHeight > 0;
+    });
+  }
+''', timeout: const Duration(seconds: 30));
         logger.info('开始截图: ${info.url}');
         final bytes = await session.page?.screenshot(fullPage: true);
         if (bytes != null) {
@@ -183,8 +197,8 @@ class WebCloneService {
         return (false, "截图失败: $info.url, $e");
       }
       return (true, "");
-    }else{
-      return (false,"url is not need capture");
+    } else {
+      return (false, "url is not need capture");
     }
   }
 
@@ -254,16 +268,8 @@ class WebCloneService {
       // logger.info('URL is not allowed domain: $url');
       return false;
     }
-    if (task.urlPattern != null && task.urlPattern!.isNotEmpty) {
-      try {
-        if (!task.isUrlValid(url)) {
-          // logger.info('URL pattern not match: $url ${task.urlPattern}');
-          return false;
-        }
-      } catch (e) {
-        logger.info('Invalid URL pattern: ${task.urlPattern} error: $e');
-        return false;
-      }
+    if (!task.isUrlValid(url)) {
+      return false;
     }
     return true;
   }

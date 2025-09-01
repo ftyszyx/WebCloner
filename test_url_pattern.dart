@@ -8,6 +8,7 @@ void main() {
     url: 'https://www.315lz.com/',
     domainList: ['www.315lz.com'],
     urlPattern: 'https://www.315lz.com/*.html',
+    captureUrlPattern: 'https://www.315lz.com/thread-*.html',
     createdAt: DateTime.now(),
   );
 
@@ -24,6 +25,8 @@ void main() {
 
   for (final url in testUrls) {
     final matches = task.isUrlValid(url);
-    print('$url -> ${matches ? "MATCHES" : "NO MATCH"}');
+    print('$url -> ${matches ? "MATCHES url" : "NO MATCH url"}');
+    final matches2 = task.isUrlNeedCapture(url);
+    print('$url -> ${matches2 ? "MATCHES captureUrl" : "NO MATCH captureUrl"}');
   }
 }
