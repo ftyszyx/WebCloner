@@ -6,44 +6,31 @@ import 'package:web_cloner/services/web_clone_service.dart';
 import 'package:web_cloner/widgets/task_form_dialog.dart';
 
 class TaskController extends GetxController {
-  final TaskService _taskService = TaskService.instance;
-  final WebCloneService _webCloneService = WebCloneService.instance;
-  final tasks = <Task>[].obs;
+  final _taskService = TaskService.instance;
+  final _webCloneService = WebCloneService.instance;
 
-  @override
-  void onInit() {
-    super.onInit();
-    loadTasks();
-  }
+  List<Task> get tasks => _taskService.tasks;
 
-  Future<void> loadTasks() async {
-    tasks.value = await _taskService.getAllTasks();
-  }
-
-  Future<void> showAddTaskDialog() async {
+  void showAddTaskDialog() async {
     final result = await Get.dialog<Task>(const TaskFormDialog());
     if (result != null) {
       await _taskService.addTask(result);
-      loadTasks();
     }
   }
 
-  Future<void> showEditTaskDialog(Task task) async {
+  void showEditTaskDialog(Task task) async {
     final result = await Get.dialog<Task>(TaskFormDialog(task: task));
     if (result != null) {
       await _taskService.updateTask(result);
-      loadTasks();
     }
   }
 
-  Future<void> startTask(Task task) async {
+  void startTask(Task task) async {
     await _webCloneService.addTask(task);
-    loadTasks(); // This might not immediately reflect running status
   }
 
   Future<void> pauseTask(Task task) async {
     await _taskService.pauseTask(task.id);
-    loadTasks();
   }
 
   Future<void> deleteTask(Task task) async {
@@ -67,7 +54,7 @@ class TaskController extends GetxController {
 
     if (confirmed == true) {
       await _taskService.deleteTask(task.id);
-      loadTasks();
+      // loadTasks();
     }
   }
 

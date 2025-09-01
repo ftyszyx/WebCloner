@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:developer';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:get/get.dart';
@@ -45,7 +46,10 @@ class WebCloneService {
     final List<WebInfo> okWebInfos = [];
     int totalPages = 0;
     try {
-      logger.info('Starting website clone for task: ${task.name}');
+      TaskService.instance.updateTaskStatus(task.id, TaskStatus.running);
+      logger.info(
+        'Starting website clone for task: ${task.name} url: ${task.url}  urlPattern: ${task.urlPattern} urlPatternRegex: ${task.urlPatternRegex}',
+      );
       // 创建任务特定的输出目录
       final outputPath = await _createTaskOutputDir(task);
       _getOkForUrls(task, okWebInfos);
@@ -84,6 +88,7 @@ class WebCloneService {
           if (_checkUrlIsValid(url, task) == false) {
             return;
           }
+          logger.info('add url: $url');
           needVisitUrls.add(url);
           totalPages++;
         });
@@ -93,6 +98,7 @@ class WebCloneService {
         if (task.status == TaskStatus.paused) {
           break;
         }
+        await Future.delayed(const Duration(seconds: 1));
       }
       logger.info("write result");
       if (okWebInfos.isNotEmpty) {
@@ -137,12 +143,14 @@ class WebCloneService {
     WebInfo info,
     Function(String) onAddNewUrl,
   ) async {
+    logger.info('scrawlSite: ${info.url}');
     await session.page?.goto(
       info.url,
       wait: Until.domContentLoaded,
       timeout: const Duration(minutes: 10),
     );
     try {
+      logger.info('开始截图: ${info.url}');
       final bytes = await session.page?.screenshot(fullPage: true);
       if (bytes != null) {
         final file = File(info.pngPath);
@@ -155,6 +163,7 @@ class WebCloneService {
     //get title
     final title = await session.page?.title ?? '';
     info.title = title;
+    logger.info('获取title: ${info.title}');
     //get all links from html
     final links = await session.page?.evaluate<List<dynamic>>(
       '() => Array.from(document.querySelectorAll("a[href]")).map(a => new URL(a.getAttribute("href"), document.baseURI).href)',
@@ -225,12 +234,22 @@ class WebCloneService {
 
   //  检查url是否有效
   bool _checkUrlIsValid(String url, Task task) {
+    if (url.startsWith("http") == false && url.startsWith("https") == false) {
+      return false;
+    }
     final Uri uri = Uri.parse(url);
     if (!task.allowedDomains.contains(uri.host)) return false;
     if (task.urlPattern != null && task.urlPattern!.isNotEmpty) {
-      //使用正则
-      final regex = RegExp(task.urlPattern!);
-      if (!regex.hasMatch(uri.toString())) return false;
+      try {
+        final pattern = task.urlPatternRegex!;
+        final regex = RegExp(pattern);
+        if (!regex.hasMatch(uri.path)) {
+          return false;
+        }
+      } catch (e) {
+        logger.error('Invalid URL pattern: ${task.urlPattern}', error: e);
+        return false;
+      }
     }
     return true;
   }

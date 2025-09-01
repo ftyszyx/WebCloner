@@ -119,4 +119,20 @@ class Task extends HiveObject {
     }
     return _allowedDomains!;
   }
+
+  String? _urlPatternRegex;
+  String? get urlPatternRegex {
+    if (urlPattern == null) return null;
+    if (_urlPatternRegex != null) return _urlPatternRegex;
+    _urlPatternRegex = _wildcardToRegex(urlPattern!);
+    return _urlPatternRegex;
+  }
+
+  //将通配符转换为正则表达式
+  String _wildcardToRegex(String pattern) {
+    pattern = pattern.replaceAllMapped(RegExp(r'[.+?^${}()|[\]\\]'), (match) {
+      return '\\${match[0]}';
+    });
+    return pattern.replaceAll('*', '.*');
+  }
 }

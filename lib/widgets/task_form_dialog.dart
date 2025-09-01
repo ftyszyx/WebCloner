@@ -73,14 +73,14 @@ class TaskFormDialog extends StatelessWidget {
                 TextFormField(
                   controller: controller.urlPatternController,
                   decoration: InputDecoration(
-                    labelText: 'URL Pattern (Regex)',
+                    labelText: 'URL Pattern (use * as wildcard)',
                     prefixIcon: const Icon(Icons.pattern),
                     filled: true,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
                     ),
-                    hintText: 'e.g., /threads/\\d+',
+                    hintText: 'e.g., /threads/*',
                   ),
                 ),
                 const SizedBox(height: 16),

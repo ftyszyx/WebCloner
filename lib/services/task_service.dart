@@ -7,8 +7,18 @@ class TaskService {
   static const String _boxName = 'tasks';
   late Box<Task> _box;
 
+  final RxList<Task> tasks = <Task>[].obs;
+
   Future<void> init() async {
     _box = await Hive.openBox<Task>(_boxName);
+    _loadTasksFromBox();
+    _box.watch().listen((event) {
+      _loadTasksFromBox();
+    });
+  }
+
+  void _loadTasksFromBox() {
+    tasks.assignAll(_box.values.toList());
   }
 
   Future<List<Task>> getAllTasks() async {
@@ -36,6 +46,14 @@ class TaskService {
     final task = await getTaskById(id);
     if (task != null) {
       task.status = TaskStatus.paused;
+      await updateTask(task);
+    }
+  }
+
+  Future<void> updateTaskStatus(String id, TaskStatus status) async {
+    final task = await getTaskById(id);
+    if (task != null) {
+      task.status = status;
       await updateTask(task);
     }
   }

@@ -56,9 +56,7 @@ class BrowerService {
     Function(Response)? onResponse,
   }) async {
     try {
-      logger.info('runbrowser: $url');
       final String exeDir = path.dirname(Platform.resolvedExecutable);
-      logger.info('exeDir: $exeDir');
       final String chromiumPath = path.join(
         exeDir,
         'data',
@@ -70,7 +68,6 @@ class BrowerService {
       if (!await File(chromiumPath).exists()) {
         throw Exception('打包的 chrome.exe 未找到，路径: $chromiumPath');
       }
-      logger.info('chromiumPath: $chromiumPath');
       final args = ['--disable-dev-shm-usage'];
       args.add('--no-sandbox');
       args.add('--disable-setuid-sandbox');
@@ -81,7 +78,6 @@ class BrowerService {
         args.add('--unsafely-disable-devtools-self-xss-warnings'); // pasting
       }
       final showBrowser = AppConfigService.instance.isdebug || forceShowBrowser;
-      logger.info('showBrowser: $showBrowser');
       if (!showBrowser) {
         args.add('--headless=new'); // 新 headless，Windows 更稳定
       }
@@ -89,7 +85,6 @@ class BrowerService {
         AppConfigService.instance.chromeDataPath,
         DateTime.now().millisecondsSinceEpoch.toString(),
       );
-      logger.info('userDataDir: $userDataDir');
       final browser = await puppeteer.launch(
         executablePath: chromiumPath,
         headless: !showBrowser,
@@ -114,7 +109,6 @@ class BrowerService {
       await page.setUserAgent(AppConfigService.instance.userAgent);
       // await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1');
       if (cookies != null) {
-        logger.info('setCookies: $cookies');
         await page.setCookies(
           cookies
               .map(
@@ -124,7 +118,7 @@ class BrowerService {
               .toList(),
         );
       }
-      logger.info('浏览器正在导航到: $url');
+      logger.info('浏览器正在导航到: $url chrome path: $chromiumPath ');
       await page.goto(
         url,
         wait: Until.domContentLoaded,

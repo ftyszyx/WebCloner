@@ -115,8 +115,7 @@ class TaskPage extends GetView<TaskController> {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (task.status == TaskStatus.pending ||
-                                    task.status == TaskStatus.paused)
+                                if (task.status != TaskStatus.running)
                                   IconButton(
                                     icon: const Icon(Icons.play_arrow),
                                     onPressed: () => controller.startTask(task),
