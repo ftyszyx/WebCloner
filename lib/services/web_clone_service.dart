@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:get/get.dart';
@@ -15,7 +16,31 @@ class WebInfo {
   String title;
   String url;
   String pngPath;
-  WebInfo({required this.title, required this.url, required this.pngPath});
+  bool visited;
+  bool isCaptured;
+  WebInfo({
+    required this.title,
+    required this.url,
+    required this.pngPath,
+    this.visited = false,
+    this.isCaptured = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'url': url,
+        'pngPath': pngPath,
+        'visited': visited,
+        'isCaptured': isCaptured,
+      };
+
+  factory WebInfo.fromJson(Map<String, dynamic> json) => WebInfo(
+        title: json['title'],
+        url: json['url'],
+        pngPath: json['pngPath'],
+        visited: json['visited'] ?? false,
+        isCaptured: json['isCaptured'] ?? false,
+      );
 }
 
 class WebCloneService {
@@ -42,24 +67,31 @@ class WebCloneService {
 
   Future<void> cloneWebsite(Task task) async {
     BrowserSession? session;
-    final List<WebInfo> okWebInfos = [];
-    int totalPages = 0;
+    List<WebInfo> validWebsList;
+    final Queue<WebInfo> needVisitWebInfos = Queue();
+    final Map<String, WebInfo> validWebDic = {};
+    int visitedPages = 0;
+    int capturedPages = 0;
     try {
       TaskService.instance.updateTaskStatus(task.id, TaskStatus.running);
-      logger.info(
-        'Starting website clone for task: ${task.name} url: ${task.url}  urlPattern: ${task.urlPattern} ',
-      );
+      logger.info( 'Starting website clone for task: ${task.name} url: ${task.url}');
       // 创建任务特定的输出目录
       final outputPath = await _createTaskOutputDir(task);
-      _getOkForUrls(task, okWebInfos);
-      final Set<String> okUrls = okWebInfos.map((e) => e.url).toSet();
-      final Set<String> visitedUrls = <String>{};
-      final Set<String> needVisitUrlSet = <String>{};
-      final Queue<String> needVisitUrls = Queue();
-      final List<String> needVisitUrlList = await _getNeedVisitUrlForUrls(task);
-      needVisitUrlSet.addAll(needVisitUrlList);
-      needVisitUrls.addAll(needVisitUrlList);
-      totalPages = visitedUrls.length;
+      validWebsList = await _getTaskHistory(task);
+      validWebsList.removeWhere((x) => _checkUrlIsValid(x.url, task) == false);
+      //map to list
+      for (var x in validWebsList) {
+        validWebDic[x.url] = x;
+        if (x.isCaptured) {
+          capturedPages++;
+        }
+        if (x.visited) {
+          visitedPages++;
+        } else {
+          needVisitWebInfos.add(x);
+        }
+      }
+
       List<puppeteer_network.Cookie> cookies = [];
       if (task.accountId != null && task.accountId!.isNotEmpty) {
         try {
@@ -72,45 +104,51 @@ class WebCloneService {
           logger.error('读取账号Cookies失败: $e');
         }
       }
-      session = await BrowerService.instance.runBrowser(forceShowBrowser: true);
-      if (needVisitUrlSet.contains(task.url) == false) {
-        needVisitUrls.add(task.url);
-        needVisitUrlSet.add(task.url);
-      }
-      while (needVisitUrls.isNotEmpty) {
-        final url = needVisitUrls.removeFirst();
-        final webInfo = WebInfo(
+      addNewUrl(String url) {
+        if (validWebDic.containsKey(url)) {
+          return;
+        }
+        final info = WebInfo(
           url: url,
           pngPath: _getPngPath(task, url),
           title: '',
         );
-        visitedUrls.add(url);
-        final (isOk, errMesg) = await _scrawlSite(
-          session,
-          webInfo,
-          okUrls,
-          cookies,
-          (url) {
-            if (visitedUrls.contains(url)) {
-              return;
-            }
-            if (_checkUrlIsValid(url, task) == false) {
-              // logger.info('url is not valid: $url');
-              return;
-            }
-            if (needVisitUrlSet.contains(url)) {
-              return;
-            }
-            needVisitUrlSet.add(url);
-            needVisitUrls.add(url);
-            // logger.info('add url: $url');
-            totalPages++;
-          },
-          task,
-        );
+        if (File(info.pngPath).existsSync()) {
+          info.isCaptured = true;
+          info.visited = true;
+          visitedPages++;
+          capturedPages++;
+        } else {
+          needVisitWebInfos.add(info);
+        }
+        validWebsList.add(info);
+        validWebDic[url] = info;
+      }
+
+      session = await BrowerService.instance.runBrowser(forceShowBrowser: true);
+      if (validWebsList.isEmpty) {
+        addNewUrl(task.url);
+      }
+      while (needVisitWebInfos.isNotEmpty) {
+        final info = needVisitWebInfos.removeFirst();
+        info.visited = true;
+        visitedPages++;
+        final (isOk, errMesg) = await _scrawlSite(session, info, cookies, (
+          url,
+        ) {
+          if (validWebDic.containsKey(url)) {
+            return;
+          }
+          if (_checkUrlIsValid(url, task) == false) {
+            // logger.info('url is not valid: $url');
+            return;
+          }
+          addNewUrl(url);
+        }, task);
         if (isOk) {
-          okWebInfos.add(webInfo);
-          if (task.maxPages > 0 && okWebInfos.length >= task.maxPages) {
+          info.isCaptured = true;
+          capturedPages++;
+          if (task.maxPages > 0 && capturedPages >= task.maxPages) {
             logger.info('超过最大数量: ${task.maxPages}');
             break;
           }
@@ -118,20 +156,25 @@ class WebCloneService {
         if (task.status == TaskStatus.paused) {
           break;
         }
+        TaskService.instance.updateTaskProgress(
+          task.id,
+          validWebsList.length,
+          capturedPages,
+          visitedPages,
+        );
         await Future.delayed(const Duration(seconds: 1));
       }
       logger.info("任务结束");
-      if (okWebInfos.isNotEmpty) {
-        await _generateIndexHtml(okWebInfos, task);
-        await _saveOkForUrls(okWebInfos, task);
+      if (validWebsList.isNotEmpty) {
+        await _generateIndexHtml(validWebsList, task);
       }
-      await _saveNeedVisitUrlForUrls(needVisitUrls.toList(), task);
+      await _saveTaskHistory(task, validWebsList);
       task.status = TaskStatus.completed;
       TaskService.instance.completeTask(
         task.id,
-        totalPages,
-        visitedUrls.length,
-        okWebInfos.length,
+        validWebsList.length,
+        visitedPages,
+        capturedPages,
         outputPath,
       );
     } catch (e, s) {
@@ -148,14 +191,6 @@ class WebCloneService {
 
   String _getTaskOutputDir(Task task) {
     return path.join(AppConfigService.instance.outputDir, task.id);
-  }
-
-  String _getTaskOkFileListPath(Task task) {
-    return path.join(_getTaskOutputDir(task), 'ok.txt');
-  }
-
-  String _getNeedVisitUrlFileListPath(Task task) {
-    return path.join(_getTaskOutputDir(task), 'need_visit.txt');
   }
 
   String _getPngPath(Task task, String url) {
@@ -183,7 +218,6 @@ class WebCloneService {
   Future<(bool, String)> _scrawlSite(
     BrowserSession session,
     WebInfo info,
-    Set<String> okUrls,
     List<puppeteer_network.Cookie> cookies,
     Function(String) onAddNewUrl,
     Task task,
@@ -209,8 +243,7 @@ class WebCloneService {
         final url = Uri.parse(link).toString();
         onAddNewUrl(url);
       }
-      if (task.isUrlNeedCapture(info.url) &&
-          okUrls.contains(info.url) == false) {
+      if (task.isUrlNeedCapture(info.url) && info.isCaptured == false) {
         try {
           //wait page all images loaded
           logger.info('等待页面所有图片加载完成');
@@ -220,7 +253,6 @@ class WebCloneService {
                const body = document.body;
                const html = document.documentElement;
                const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
-               
                for (let i = 0; i < height; i += 100) {
                  window.scrollTo(0, i);
                  await sleep(50);
@@ -248,11 +280,11 @@ class WebCloneService {
           final bytes = await page.page.screenshot(fullPage: true);
           final file = File(info.pngPath);
           await file.writeAsBytes(bytes);
+          return (true, "");
         } catch (e, s) {
           logger.error('截图失败: ${info.url}, ', error: e, stackTrace: s);
           return (false, "截图失败: ${info.url}, $e");
         }
-        return (true, "");
       } else {
         return (false, "url is not need capture");
       }
@@ -261,24 +293,24 @@ class WebCloneService {
     }
   }
 
-  Future<void> _saveOkForUrls(List<WebInfo> items, Task task) async {
-    final outputPath = _getTaskOkFileListPath(task);
-    await File(outputPath).writeAsString(
-      items
-          .map((e) => '${Uri.encodeFull(e.url)}|${e.pngPath}|${e.title}')
-          .join('\n'),
-    );
+  String _getTaskHistoryFileListPath(Task task) {
+    return path.join(_getTaskOutputDir(task), 'history.json');
   }
 
-  Future<void> _saveNeedVisitUrlForUrls(List<String> items, Task task) async {
-    final outputPath = _getNeedVisitUrlFileListPath(task);
-    await File(outputPath).writeAsString(items.join('\n'));
+  Future<void> _saveTaskHistory(Task task, List<WebInfo> items) async {
+    final outputPath = _getTaskHistoryFileListPath(task);
+    const encoder = JsonEncoder.withIndent('  ');
+    final formattedJson = encoder.convert(items);
+    await File(outputPath).writeAsString(formattedJson);
   }
 
-  Future<List<String>> _getNeedVisitUrlForUrls(Task task) async {
-    final outputPath = _getNeedVisitUrlFileListPath(task);
+  Future<List<WebInfo>> _getTaskHistory(Task task) async {
+    final outputPath = _getTaskHistoryFileListPath(task);
     if (File(outputPath).existsSync()) {
-      return File(outputPath).readAsLinesSync();
+      final content = await File(outputPath).readAsString();
+      if (content.isEmpty) return [];
+      final List<dynamic> jsonList = jsonDecode(content);
+      return jsonList.map((json) => WebInfo.fromJson(json)).toList();
     }
     return [];
   }
@@ -296,6 +328,7 @@ class WebCloneService {
     buf.writeln('</head><body><h1>克隆页面索引</h1><ul>');
     for (int i = 0; i < items.length; i++) {
       final it = items[i];
+      if (it.isCaptured == false) continue;
       final pngName = path.basename(it.pngPath);
       buf.writeln(
         '<li>${i + 1}. <a href="resources/$pngName">${_escapeHtml(it.title)}</a> — <small>${_escapeHtml(it.url)}</small></li>',
@@ -315,20 +348,6 @@ class WebCloneService {
         .replaceAll("'", '&#39;');
   }
 
-  void _getOkForUrls(Task task, List<WebInfo> okList) async {
-    final savePath = _getTaskOkFileListPath(task);
-    if (File(savePath).existsSync()) {
-      //read file from json
-      final linearr = File(savePath).readAsLinesSync();
-      for (var line in linearr) {
-        final itemarr = line.split('|');
-        okList.add(
-          WebInfo(url: itemarr[0], pngPath: itemarr[1], title: itemarr[2]),
-        );
-      }
-    }
-  }
-
   //  检查url是否有效
   bool _checkUrlIsValid(String url, Task task) {
     try {
@@ -340,6 +359,9 @@ class WebCloneService {
         return false;
       }
       if (!task.isUrlValid(url)) {
+        return false;
+      }
+      if (task.isUrlIgnore(url)) {
         return false;
       }
       return true;

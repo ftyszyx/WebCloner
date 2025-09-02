@@ -100,7 +100,7 @@ class TaskPage extends GetView<TaskController> {
                               children: [
                                 Text('URL: ${task.url}'),
                                 Text(
-                                  'Progress: ${task.completedPages}/${task.totalPages} (${(task.progress * 100).toStringAsFixed(1)}%)',
+                                  'Progress: ${task.visitedNum}/${task.totalPages} (${(task.progress * 100).toStringAsFixed(1)}%)',
                                   style: const TextStyle(fontSize: 12),
                                 ),
                                 LinearProgressIndicator(

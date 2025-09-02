@@ -69,9 +69,19 @@ class TaskService {
     if (task != null) {
       task.status = TaskStatus.completed;
       task.completedAt = DateTime.now();
-      task.completedPages = completed;
+      task.visitedNum = completed;
       task.totalPages = total;
       task.outputPath = outputPath;
+      task.captureNum = captured;
+      await updateTask(task);
+    }
+  }
+
+  Future<void> updateTaskProgress(String id, int total, int captured,int visited) async {
+    final task = await getTaskById(id);
+    if (task != null) {
+      task.totalPages = total;
+      task.visitedNum = visited;
       task.captureNum = captured;
       await updateTask(task);
     }

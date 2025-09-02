@@ -113,6 +113,57 @@ class TaskFormDialog extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
+                        'Ignore URL Patterns',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      Obx(
+                        () => Wrap(
+                          spacing: 6.0,
+                          runSpacing: 6.0,
+                          children: controller.ignoreUrlPatterns
+                              .map(
+                                (pattern) => Chip(
+                                  label: Text(pattern),
+                                  onDeleted: () =>
+                                      controller.removeIgnoreUrlPattern(pattern),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                      TextFormField(
+                        controller: controller.ignoreUrlPatternInputController,
+                        decoration: InputDecoration(
+                          hintText: 'Add a pattern and press Enter',
+                          border: InputBorder.none,
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.add),
+                            onPressed: () => controller.addIgnoreUrlPattern(),
+                          ),
+                        ),
+                        onFieldSubmitted: (value) =>
+                            controller.addIgnoreUrlPattern(),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         'Allowed Domains',
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
@@ -159,6 +210,21 @@ class TaskFormDialog extends StatelessWidget {
                       borderSide: BorderSide.none,
                     ),
                     hintText: '0 for unlimited',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: controller.maxTaskNumController,
+                  decoration: InputDecoration(
+                    labelText: 'Max Concurrent Tasks',
+                    prefixIcon: const Icon(Icons.sync_alt),
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    hintText: 'Leave empty for default',
                   ),
                   keyboardType: TextInputType.number,
                 ),
@@ -220,9 +286,12 @@ class _TaskFormDialogController extends GetxController {
   final urlPatternController = TextEditingController();
   final captureUrlPatternController = TextEditingController();
   final domainInputController = TextEditingController();
+  final ignoreUrlPatternInputController = TextEditingController();
   final maxPagesController = TextEditingController();
+  final maxTaskNumController = TextEditingController();
 
   final domainList = <String>[].obs;
+  final ignoreUrlPatterns = <String>[].obs;
   final accounts = <Account>[].obs;
   final selectedAccountId = Rx<String?>(null);
 
@@ -236,7 +305,11 @@ class _TaskFormDialogController extends GetxController {
       urlPatternController.text = task!.urlPattern ?? '';
       captureUrlPatternController.text = task!.captureUrlPattern ?? '';
       domainList.assignAll(task!.domainList);
+      if (task!.ignoreUrlPatterns != null) {
+        ignoreUrlPatterns.assignAll(task!.ignoreUrlPatterns!);
+      }
       maxPagesController.text = task!.maxPages.toString();
+      maxTaskNumController.text = task!.maxTaskNum?.toString() ?? '';
       selectedAccountId.value = task!.accountId;
     }
   }
@@ -248,7 +321,9 @@ class _TaskFormDialogController extends GetxController {
     urlPatternController.dispose();
     captureUrlPatternController.dispose();
     domainInputController.dispose();
+    ignoreUrlPatternInputController.dispose();
     maxPagesController.dispose();
+    maxTaskNumController.dispose();
     super.onClose();
   }
 
@@ -268,6 +343,18 @@ class _TaskFormDialogController extends GetxController {
     domainList.remove(domain);
   }
 
+  void addIgnoreUrlPattern() {
+    final pattern = ignoreUrlPatternInputController.text.trim();
+    if (pattern.isNotEmpty && !ignoreUrlPatterns.contains(pattern)) {
+      ignoreUrlPatterns.add(pattern);
+      ignoreUrlPatternInputController.clear();
+    }
+  }
+
+  void removeIgnoreUrlPattern(String pattern) {
+    ignoreUrlPatterns.remove(pattern);
+  }
+
   void saveTask() {
     if (formKey.currentState!.validate()) {
       final newTask = Task(
@@ -277,8 +364,10 @@ class _TaskFormDialogController extends GetxController {
         urlPattern: urlPatternController.text,
         captureUrlPattern: captureUrlPatternController.text,
         domainList: domainList.toList(),
+        ignoreUrlPatterns: ignoreUrlPatterns.toList(),
         createdAt: task?.createdAt ?? DateTime.now(),
         maxPages: int.tryParse(maxPagesController.text) ?? 0,
+        maxTaskNum: int.tryParse(maxTaskNumController.text),
         accountId: selectedAccountId.value,
       );
       Get.back(result: newTask);

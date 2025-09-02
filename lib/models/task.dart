@@ -37,6 +37,9 @@ class Task extends HiveObject {
   @HiveField(13)
   String? captureUrlPattern;
 
+  @HiveField(14)
+  List<String>? ignoreUrlPatterns;
+
   @HiveField(20)
   TaskStatus status;
 
@@ -52,14 +55,14 @@ class Task extends HiveObject {
   @HiveField(40)
   int totalPages;
 
-  @HiveField(41)
-  int completedPages;
-
   @HiveField(42)
   int maxPages;
 
   @HiveField(43)
   int? captureNum;
+
+  @HiveField(44)
+  int? visitedNum;
 
   @HiveField(50)
   String? outputPath;
@@ -70,6 +73,9 @@ class Task extends HiveObject {
   @HiveField(70)
   String? accountId;
 
+  @HiveField(80)
+  int? maxTaskNum;
+
   Task({
     required this.id,
     required this.name,
@@ -77,22 +83,25 @@ class Task extends HiveObject {
     required this.domainList,
     this.urlPattern,
     this.captureUrlPattern,
+    this.ignoreUrlPatterns,
     this.status = TaskStatus.pending,
     required this.createdAt,
     this.startedAt,
     this.completedAt,
     this.totalPages = 0,
-    this.completedPages = 0,
+    this.visitedNum = 0,
     this.outputPath,
     this.errorMessage,
     this.maxPages = 0,
     this.captureNum,
     this.accountId,
+    this.maxTaskNum=1,
   });
 
   double get progress {
     if (totalPages == 0) return 0.0;
-    return completedPages / totalPages;
+    if (visitedNum == null) return 0.0;
+    return visitedNum! / totalPages;
   }
 
   Map<String, dynamic> toJson() {
@@ -107,13 +116,14 @@ class Task extends HiveObject {
       'startedAt': startedAt?.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
       'totalPages': totalPages,
-      'completedPages': completedPages,
+      'visitedNum': visitedNum,
       'outputPath': outputPath,
       'errorMessage': errorMessage,
       'maxPages': maxPages,
       'accountId': accountId,
       'captureNum': captureNum,
       'captureUrlPattern': captureUrlPattern,
+      'ignoreUrlPattern': ignoreUrlPatterns?.join(','),
     };
   }
 
@@ -157,5 +167,19 @@ class Task extends HiveObject {
     _captureUrlPatternRegex ??= _wildcardToRegex(captureUrlPattern!);
     final regex = RegExp(_captureUrlPatternRegex!);
     return regex.hasMatch(url);
+  }
+
+
+  List<String>? _ignoreUrlPatternRegexs;
+  bool isUrlIgnore(String url) {
+    if (ignoreUrlPatterns == null) return false;
+    _ignoreUrlPatternRegexs ??= ignoreUrlPatterns!.map((e) => _wildcardToRegex(e)).toList();
+    for (final regex in _ignoreUrlPatternRegexs!) {
+      final reg = RegExp(regex);
+      if (reg.hasMatch(url)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
