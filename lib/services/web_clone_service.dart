@@ -76,7 +76,7 @@ class WebCloneService {
         final url = needVisitUrls.removeFirst();
         final webInfo = WebInfo(
           url: url,
-          pngPath: path.join(outputPath, '${url.hashCode}.png'),
+          pngPath: _getPngPath(task, url),
           title: '',
         );
         visitedUrls.add(url);
@@ -105,7 +105,7 @@ class WebCloneService {
         );
         if (isOk) {
           okWebInfos.add(webInfo);
-          if (okWebInfos.length >= task.maxPages) {
+          if (task.maxPages > 0 && okWebInfos.length >= task.maxPages) {
             logger.info('超过最大数量: ${task.maxPages}');
             break;
           }
@@ -128,8 +128,12 @@ class WebCloneService {
         okWebInfos.length,
         outputPath,
       );
-    } catch (e) {
-      logger.error('Error cloning website for task: ${task.name}', error: e);
+    } catch (e, s) {
+      logger.error(
+        'Error cloning website for task: ${task.name}',
+        error: e,
+        stackTrace: s,
+      );
       TaskService.instance.failTask(task.id, e.toString());
     } finally {
       await session?.close();
@@ -144,11 +148,24 @@ class WebCloneService {
     return path.join(_getTaskOutputDir(task), 'ok.txt');
   }
 
+
+  String _getPngPath(Task task, String url) {
+    return path.join(
+      _getTaskOutputDir(task),
+      "resources",
+      '${url.hashCode}.png',
+    );
+  }
+
   Future<String> _createTaskOutputDir(Task task) async {
     final taskDir = _getTaskOutputDir(task);
     final dir = Directory(taskDir);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
+    }
+    final resourcesDir = Directory(path.join(taskDir, "resources"));
+    if (!resourcesDir.existsSync()) {
+      resourcesDir.createSync(recursive: true);
     }
     return taskDir;
   }
@@ -174,10 +191,10 @@ class WebCloneService {
       //get title
       final title = await page.page.title ?? '';
       info.title = title;
-      logger.info('获取title: ${info.title}');
+      // logger.info('获取title: ${info.title}');
       //get all links from html
       final links = await page.page.evaluate<List<dynamic>>(
-        '() => Array.from(document.querySelectorAll("a[href]")).map(a => new URL(a.getAttribute("href"), document.baseURI).href)',
+        '() => Array.from(document.querySelectorAll("a[href]")).filter(a => ["http:", "https:"] .includes(a.protocol)).map(a => a.href)',
       );
       for (var link in links) {
         final url = Uri.parse(link).toString();
@@ -197,7 +214,7 @@ class WebCloneService {
       return img.complete && img.naturalHeight > 0;
     });
   }
-''', timeout: const Duration(seconds: 30));
+''', timeout: const Duration(seconds: 60));
           logger.info('开始截图: ${info.url}');
           final bytes = await page.page.screenshot(fullPage: true);
           final file = File(info.pngPath);
@@ -239,7 +256,7 @@ class WebCloneService {
       final it = items[i];
       final pngName = path.basename(it.pngPath);
       buf.writeln(
-        '<li>${i + 1}. <a href="$pngName">${_escapeHtml(it.title)}</a> — <small>${_escapeHtml(it.url)}</small></li>',
+        '<li>${i + 1}. <a href="resources/$pngName">${_escapeHtml(it.title)}</a> — <small>${_escapeHtml(it.url)}</small></li>',
       );
     }
     buf.writeln('</ul></body></html>');
@@ -272,18 +289,25 @@ class WebCloneService {
 
   //  检查url是否有效
   bool _checkUrlIsValid(String url, Task task) {
-    if (url.startsWith("http") == false && url.startsWith("https") == false) {
-      // logger.info('URL is not valid: $url');
+    try {
+      if (url.startsWith("http") == false && url.startsWith("https") == false) {
+        return false;
+      }
+      final Uri uri = Uri.parse(url);
+      if (!task.allowedDomains.contains(uri.host)) {
+        return false;
+      }
+      if (!task.isUrlValid(url)) {
+        return false;
+      }
+      return true;
+    } catch (e, s) {
+      logger.error(
+        'Error checking URL is valid: $url',
+        error: e,
+        stackTrace: s,
+      );
       return false;
     }
-    final Uri uri = Uri.parse(url);
-    if (!task.allowedDomains.contains(uri.host)) {
-      // logger.info('URL is not allowed domain: $url');
-      return false;
-    }
-    if (!task.isUrlValid(url)) {
-      return false;
-    }
-    return true;
   }
 }
