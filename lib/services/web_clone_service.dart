@@ -105,7 +105,7 @@ class WebCloneService {
         );
         if (isOk) {
           okWebInfos.add(webInfo);
-          if (okWebInfos.length > task.maxPages) {
+          if (okWebInfos.length >= task.maxPages) {
             logger.info('超过最大数量: ${task.maxPages}');
             break;
           }
