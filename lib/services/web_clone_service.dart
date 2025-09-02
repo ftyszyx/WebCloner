@@ -27,20 +27,20 @@ class WebInfo {
   });
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'url': url,
-        'pngPath': pngPath,
-        'visited': visited,
-        'isCaptured': isCaptured,
-      };
+    'title': title,
+    'url': url,
+    'pngPath': pngPath,
+    'visited': visited,
+    'isCaptured': isCaptured,
+  };
 
   factory WebInfo.fromJson(Map<String, dynamic> json) => WebInfo(
-        title: json['title'],
-        url: json['url'],
-        pngPath: json['pngPath'],
-        visited: json['visited'] ?? false,
-        isCaptured: json['isCaptured'] ?? false,
-      );
+    title: json['title'],
+    url: json['url'],
+    pngPath: json['pngPath'],
+    visited: json['visited'] ?? false,
+    isCaptured: json['isCaptured'] ?? false,
+  );
 }
 
 class WebCloneService {
@@ -74,7 +74,9 @@ class WebCloneService {
     int capturedPages = 0;
     try {
       TaskService.instance.updateTaskStatus(task.id, TaskStatus.running);
-      logger.info( 'Starting website clone for task: ${task.name} url: ${task.url}');
+      logger.info(
+        'Starting website clone for task: ${task.name} url: ${task.url}',
+      );
       // 创建任务特定的输出目录
       final outputPath = await _createTaskOutputDir(task);
       validWebsList = await _getTaskHistory(task);
@@ -85,7 +87,7 @@ class WebCloneService {
         if (x.isCaptured) {
           capturedPages++;
         }
-        if (x.visited) {
+        if (x.visited&&x.title.isNotEmpty) {
           visitedPages++;
         } else {
           needVisitWebInfos.add(x);
@@ -115,8 +117,10 @@ class WebCloneService {
         );
         if (File(info.pngPath).existsSync()) {
           info.isCaptured = true;
-          info.visited = true;
-          visitedPages++;
+          if (info.title.isNotEmpty) {
+            info.visited = true;
+            visitedPages++;
+          }
           capturedPages++;
         } else {
           needVisitWebInfos.add(info);
@@ -165,9 +169,8 @@ class WebCloneService {
         await Future.delayed(const Duration(seconds: 1));
       }
       logger.info("任务结束");
-      if (validWebsList.isNotEmpty) {
-        await _generateIndexHtml(validWebsList, task);
-      }
+      validWebsList.sort((a, b) => a.title.compareTo(b.title));
+      await _generateIndexHtml(validWebsList, task);
       await _saveTaskHistory(task, validWebsList);
       task.status = TaskStatus.completed;
       TaskService.instance.completeTask(
@@ -257,6 +260,7 @@ class WebCloneService {
                  window.scrollTo(0, i);
                  await sleep(50);
                }
+              await sleep(50);
              }
            ''');
 
