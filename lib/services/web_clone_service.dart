@@ -56,6 +56,9 @@ class WebCloneService {
       final Set<String> visitedUrls = <String>{};
       final Set<String> needVisitUrlSet = <String>{};
       final Queue<String> needVisitUrls = Queue();
+      final List<String> needVisitUrlList = await _getNeedVisitUrlForUrls(task);
+      needVisitUrlSet.addAll(needVisitUrlList);
+      needVisitUrls.addAll(needVisitUrlList);
       totalPages = visitedUrls.length;
       List<puppeteer_network.Cookie> cookies = [];
       if (task.accountId != null && task.accountId!.isNotEmpty) {
@@ -70,8 +73,10 @@ class WebCloneService {
         }
       }
       session = await BrowerService.instance.runBrowser(forceShowBrowser: true);
-      needVisitUrls.add(task.url);
-      needVisitUrlSet.add(task.url);
+      if (needVisitUrlSet.contains(task.url) == false) {
+        needVisitUrls.add(task.url);
+        needVisitUrlSet.add(task.url);
+      }
       while (needVisitUrls.isNotEmpty) {
         final url = needVisitUrls.removeFirst();
         final webInfo = WebInfo(
@@ -120,6 +125,7 @@ class WebCloneService {
         await _generateIndexHtml(okWebInfos, task);
         await _saveOkForUrls(okWebInfos, task);
       }
+      await _saveNeedVisitUrlForUrls(needVisitUrls.toList(), task);
       task.status = TaskStatus.completed;
       TaskService.instance.completeTask(
         task.id,
@@ -148,6 +154,9 @@ class WebCloneService {
     return path.join(_getTaskOutputDir(task), 'ok.txt');
   }
 
+  String _getNeedVisitUrlFileListPath(Task task) {
+    return path.join(_getTaskOutputDir(task), 'need_visit.txt');
+  }
 
   String _getPngPath(Task task, String url) {
     return path.join(
@@ -219,7 +228,7 @@ class WebCloneService {
              }
            ''');
 
-           await page.page.waitForFunction('''
+          await page.page.waitForFunction('''
    () => {
      const images = Array.from(document.querySelectorAll('img'));
      if (images.length === 0) return true;
@@ -227,10 +236,14 @@ class WebCloneService {
      return images.every(img => img.complete);
    }
  ''', timeout: const Duration(seconds: 30));
-        }catch(e,s){
-          logger.error('等待页面所有图片加载完成失败: ${info.url}, ', error: e, stackTrace: s);
+        } catch (e, s) {
+          logger.error(
+            '等待页面所有图片加载完成失败: ${info.url}, ',
+            error: e,
+            stackTrace: s,
+          );
         }
- try{
+        try {
           logger.info('开始截图: ${info.url}');
           final bytes = await page.page.screenshot(fullPage: true);
           final file = File(info.pngPath);
@@ -255,6 +268,19 @@ class WebCloneService {
           .map((e) => '${Uri.encodeFull(e.url)}|${e.pngPath}|${e.title}')
           .join('\n'),
     );
+  }
+
+  Future<void> _saveNeedVisitUrlForUrls(List<String> items, Task task) async {
+    final outputPath = _getNeedVisitUrlFileListPath(task);
+    await File(outputPath).writeAsString(items.join('\n'));
+  }
+
+  Future<List<String>> _getNeedVisitUrlForUrls(Task task) async {
+    final outputPath = _getNeedVisitUrlFileListPath(task);
+    if (File(outputPath).existsSync()) {
+      return File(outputPath).readAsLinesSync();
+    }
+    return [];
   }
 
   Future<void> _generateIndexHtml(List<WebInfo> items, Task task) async {
