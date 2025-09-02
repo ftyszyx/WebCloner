@@ -205,23 +205,39 @@ class WebCloneService {
         try {
           //wait page all images loaded
           logger.info('等待页面所有图片加载完成');
-          await page.page.waitForFunction('''
-  () => {
-    const images = document.querySelectorAll('img');
-    if (images.length === 0) return true;
-    
-    return Array.from(images).every(img => {
-      return img.complete && img.naturalHeight > 0;
-    });
-  }
-''', timeout: const Duration(seconds: 60));
+          await page.page.evaluate('''
+             async () => {
+               const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+               const body = document.body;
+               const html = document.documentElement;
+               const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+               
+               for (let i = 0; i < height; i += 100) {
+                 window.scrollTo(0, i);
+                 await sleep(50);
+               }
+             }
+           ''');
+
+           await page.page.waitForFunction('''
+   () => {
+     const images = Array.from(document.querySelectorAll('img'));
+     if (images.length === 0) return true;
+     // Check if all images are settled (either loaded successfully or failed)
+     return images.every(img => img.complete);
+   }
+ ''', timeout: const Duration(seconds: 30));
+        }catch(e,s){
+          logger.error('等待页面所有图片加载完成失败: ${info.url}, ', error: e, stackTrace: s);
+        }
+ try{
           logger.info('开始截图: ${info.url}');
           final bytes = await page.page.screenshot(fullPage: true);
           final file = File(info.pngPath);
           await file.writeAsBytes(bytes);
         } catch (e, s) {
-          logger.error('截图失败: $info.url, ', error: e, stackTrace: s);
-          return (false, "截图失败: $info.url, $e");
+          logger.error('截图失败: ${info.url}, ', error: e, stackTrace: s);
+          return (false, "截图失败: ${info.url}, $e");
         }
         return (true, "");
       } else {
