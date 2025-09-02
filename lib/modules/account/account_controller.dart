@@ -40,7 +40,7 @@ class AccountController extends GetxController {
   Future<void> login(Account account) async {
     BrowserSession? session;
     try {
-      session = await BrowerService.instance.runBrowser(
+      session = await BrowerService.instance.runBrowserWithPage(
         url: account.url,
         forceShowBrowser: true,
       );
@@ -66,8 +66,8 @@ class AccountController extends GetxController {
       );
 
       if (confirmed == true) {
-        final cookies = await session.page?.cookies();
-        if (cookies != null && cookies.isNotEmpty) {
+        final cookies = await session.lastPage().page.cookies();
+        if (cookies.isNotEmpty) {
           account.cookies = cookies;
           await _accountService.updateAccount(account);
           Get.snackbar('Success', 'Cookies saved successfully!');

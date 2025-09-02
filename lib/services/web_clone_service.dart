@@ -54,6 +54,7 @@ class WebCloneService {
       _getOkForUrls(task, okWebInfos);
       final Set<String> okUrls = okWebInfos.map((e) => e.url).toSet();
       final Set<String> visitedUrls = <String>{};
+      final Set<String> needVisitUrlSet = <String>{};
       final Queue<String> needVisitUrls = Queue();
       totalPages = visitedUrls.length;
       List<puppeteer_network.Cookie> cookies = [];
@@ -68,12 +69,9 @@ class WebCloneService {
           logger.error('读取账号Cookies失败: $e');
         }
       }
-      session = await BrowerService.instance.runBrowser(
-        url: task.url,
-        cookies: cookies,
-        forceShowBrowser: true,
-      );
+      session = await BrowerService.instance.runBrowser( forceShowBrowser: true,);
       needVisitUrls.add(task.url);
+      needVisitUrlSet.add(task.url);
       while (needVisitUrls.isNotEmpty) {
         final url = needVisitUrls.removeFirst();
         final webInfo = WebInfo(
@@ -90,8 +88,12 @@ class WebCloneService {
             // logger.info('url is not valid: $url');
             return;
           }
-          // logger.info('add url: $url');
+          if (needVisitUrlSet.contains(url)) {
+            return;
+          }
+          needVisitUrlSet.add(url);
           needVisitUrls.add(url);
+          // logger.info('add url: $url');
           totalPages++;
         }, task);
         if (isOk) {
