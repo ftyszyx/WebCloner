@@ -1,31 +1,32 @@
 import 'dart:io';
-import 'package:puppeteer/puppeteer.dart';
+import 'package:puppeteer/puppeteer.dart' as puppeteer;
 import 'package:web_cloner/services/app_config_service.dart';
 import 'package:web_cloner/services/logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:puppeteer/protocol/network.dart' as puppeteer_network;
 
 class PageInfo {
-  final Page page;
-  final String url;
+  final puppeteer.Page page;
+  String url = '';
   bool isBusy;
-  PageInfo({required this.page, required this.url, this.isBusy = false});
+  PageInfo({required this.page, this.isBusy = false});
 
-  Future<void> goto(String url) async {
-    await page.goto(
-      url,
-      wait: Until.domContentLoaded,
-      timeout: const Duration(seconds: 0),
-    );
+  Future<void> goto({
+    String url = '',
+    Duration? timeout,
+    puppeteer.Until? wait,
+  }) async {
+    this.url = url;
+    await page.goto(url, wait: wait, timeout: timeout);
   }
 }
 
 class BrowserSession {
-  final Browser? browser;
+  final puppeteer.Browser? browser;
   final List<PageInfo> pages = [];
   final String? userDataDir;
   bool isClosed = false;
-  int maxPage = 10;//最大页面数
+  int maxPage = 10; //最大页面数
   BrowserSession({this.browser, this.userDataDir, this.isClosed = false});
 
   Future<void> close() async {
@@ -36,28 +37,39 @@ class BrowserSession {
     }
   }
 
-  Future<PageInfo?> getNotBusyPage({
+  Future<PageInfo> waitForNotBusyPage({
     List<puppeteer_network.Cookie>? cookies,
-    Function(Request)? onRequest,
-    Function(Response)? onResponse,
+    Function(puppeteer.Request)? onRequest,
+    Function(puppeteer.Response)? onResponse,
   }) async {
-    var page=pages.firstWhereOrNull((element) => element.isBusy == false);
-    if(page!=null){
-      page.isBusy = true;
-    }
-    else{
-      if(pages.length<maxPage){
-        page=await addpage( cookies: cookies, onRequest: onRequest, onResponse: onResponse);
+    PageInfo? page;
+    while (page == null) {
+      try {
+        page = pages.firstWhere((element) => !element.isBusy);
+        page.isBusy = true;
+        return page;
+      } catch (e) {
+        if (pages.length < maxPage) {
+          page = await addpage(
+            cookies: cookies,
+            onRequest: onRequest,
+            onResponse: onResponse,
+          );
+          page.isBusy = true;
+          return page;
+        }
       }
+      await Future.delayed(const Duration(milliseconds: 1000));
     }
-    return page;
+    throw Exception('没有找到可用的页面');
   }
 
   Future<PageInfo> addpage({
     List<puppeteer_network.Cookie>? cookies,
-    Function(Request)? onRequest,
-    Function(Response)? onResponse,
+    Function(puppeteer.Request)? onRequest,
+    Function(puppeteer.Response)? onResponse,
   }) async {
+    logger.info('添加页面');
     final page = await browser!.newPage();
     page.onRequest.listen((request) {
       if (onRequest != null) {
@@ -75,14 +87,17 @@ class BrowserSession {
       await page.setCookies(
         cookies
             .map(
-              (e) =>
-                  CookieParam(name: e.name, value: e.value, domain: e.domain),
+              (e) => puppeteer.CookieParam(
+                name: e.name,
+                value: e.value,
+                domain: e.domain,
+              ),
             )
             .toList(),
       );
     }
 
-    final pageInfo = PageInfo(page: page, url: url, isBusy: false);
+    final pageInfo = PageInfo(page: page, isBusy: false);
     pages.add(pageInfo);
     return pageInfo;
   }
@@ -144,7 +159,7 @@ class BrowerService {
         AppConfigService.instance.chromeDataPath,
         DateTime.now().millisecondsSinceEpoch.toString(),
       );
-      final browser = await puppeteer.launch(
+      final browser = await puppeteer.puppeteer.launch(
         executablePath: chromiumPath,
         headless: !showBrowser,
         ignoreHttpsErrors: true,
@@ -169,17 +184,16 @@ class BrowerService {
     required String url,
     List<puppeteer_network.Cookie>? cookies,
     bool forceShowBrowser = false,
-    Function(Request)? onRequest,
-    Function(Response)? onResponse,
+    Function(puppeteer.Request)? onRequest,
+    Function(puppeteer.Response)? onResponse,
   }) async {
     final browserSession = await runBrowser(forceShowBrowser: forceShowBrowser);
     final page = await browserSession.addpage(
-      url: url,
       cookies: cookies,
       onRequest: onRequest,
       onResponse: onResponse,
     );
-    await page.goto(url);
+    await page.goto(url: url);
     return browserSession;
   }
 }

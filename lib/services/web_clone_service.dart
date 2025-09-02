@@ -69,7 +69,7 @@ class WebCloneService {
           logger.error('读取账号Cookies失败: $e');
         }
       }
-      session = await BrowerService.instance.runBrowser( forceShowBrowser: true,);
+      session = await BrowerService.instance.runBrowser(forceShowBrowser: true);
       needVisitUrls.add(task.url);
       needVisitUrlSet.add(task.url);
       while (needVisitUrls.isNotEmpty) {
@@ -80,22 +80,29 @@ class WebCloneService {
           title: '',
         );
         visitedUrls.add(url);
-        final (isOk, errMesg) = await _scrawlSite(session, webInfo, okUrls, (url) {
-          if (visitedUrls.contains(url)) {
-            return;
-          }
-          if (_checkUrlIsValid(url, task) == false) {
-            // logger.info('url is not valid: $url');
-            return;
-          }
-          if (needVisitUrlSet.contains(url)) {
-            return;
-          }
-          needVisitUrlSet.add(url);
-          needVisitUrls.add(url);
-          // logger.info('add url: $url');
-          totalPages++;
-        }, task);
+        final (isOk, errMesg) = await _scrawlSite(
+          session,
+          webInfo,
+          okUrls,
+          cookies,
+          (url) {
+            if (visitedUrls.contains(url)) {
+              return;
+            }
+            if (_checkUrlIsValid(url, task) == false) {
+              // logger.info('url is not valid: $url');
+              return;
+            }
+            if (needVisitUrlSet.contains(url)) {
+              return;
+            }
+            needVisitUrlSet.add(url);
+            needVisitUrls.add(url);
+            // logger.info('add url: $url');
+            totalPages++;
+          },
+          task,
+        );
         if (isOk) {
           okWebInfos.add(webInfo);
           if (okWebInfos.length > task.maxPages) {
@@ -151,34 +158,37 @@ class WebCloneService {
     BrowserSession session,
     WebInfo info,
     Set<String> okUrls,
+    List<puppeteer_network.Cookie> cookies,
     Function(String) onAddNewUrl,
     Task task,
   ) async {
     logger.info('goto url: ${info.url}');
-    await session.page?.goto(
-      info.url,
-      wait: Until.domContentLoaded,
-      timeout: const Duration(minutes: 10),
-    );
-    //get title
-    final title = await session.page?.title ?? '';
-    info.title = title;
-    logger.info('获取title: ${info.title}');
-    //get all links from html
-    final links = await session.page?.evaluate<List<dynamic>>(
-      '() => Array.from(document.querySelectorAll("a[href]")).map(a => new URL(a.getAttribute("href"), document.baseURI).href)',
-    );
-    if (links != null) {
+    final page = await session.waitForNotBusyPage(cookies: cookies);
+    try {
+      page.isBusy = true;
+      await page.goto(
+        url: info.url,
+        wait: Until.domContentLoaded,
+        timeout: const Duration(minutes: 10),
+      );
+      //get title
+      final title = await page.page.title ?? '';
+      info.title = title;
+      logger.info('获取title: ${info.title}');
+      //get all links from html
+      final links = await page.page.evaluate<List<dynamic>>(
+        '() => Array.from(document.querySelectorAll("a[href]")).map(a => new URL(a.getAttribute("href"), document.baseURI).href)',
+      );
       for (var link in links) {
         final url = Uri.parse(link).toString();
         onAddNewUrl(url);
       }
-    }
-    if (task.isUrlNeedCapture(info.url) && okUrls.contains(info.url) == false) {
-      try {
-        //wait page all images loaded
-        logger.info('等待页面所有图片加载完成');
-        await session.page?.waitForFunction('''
+      if (task.isUrlNeedCapture(info.url) &&
+          okUrls.contains(info.url) == false) {
+        try {
+          //wait page all images loaded
+          logger.info('等待页面所有图片加载完成');
+          await page.page.waitForFunction('''
   () => {
     const images = document.querySelectorAll('img');
     if (images.length === 0) return true;
@@ -188,19 +198,20 @@ class WebCloneService {
     });
   }
 ''', timeout: const Duration(seconds: 30));
-        logger.info('开始截图: ${info.url}');
-        final bytes = await session.page?.screenshot(fullPage: true);
-        if (bytes != null) {
+          logger.info('开始截图: ${info.url}');
+          final bytes = await page.page.screenshot(fullPage: true);
           final file = File(info.pngPath);
           await file.writeAsBytes(bytes);
+        } catch (e, s) {
+          logger.error('截图失败: $info.url, ', error: e, stackTrace: s);
+          return (false, "截图失败: $info.url, $e");
         }
-      } catch (e, s) {
-        logger.error('截图失败: $info.url, ', error: e, stackTrace: s);
-        return (false, "截图失败: $info.url, $e");
+        return (true, "");
+      } else {
+        return (false, "url is not need capture");
       }
-      return (true, "");
-    } else {
-      return (false, "url is not need capture");
+    } finally {
+      page.isBusy = false;
     }
   }
 
