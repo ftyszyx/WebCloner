@@ -153,4 +153,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get save => 'Save';
+
+  @override
+  String get captureUrlPattern => 'Capture URL Pattern (use * as wildcard)';
+
+  @override
+  String get captureUrlPatternHint =>
+      'e.g., *.html or leave empty to capture all';
+
+  @override
+  String get ignoreUrlPatterns => 'Ignore URL Patterns';
+
+  @override
+  String get addPatternHint => 'Add a pattern and press Enter';
+
+  @override
+  String get maxConcurrentTasks => 'Max Concurrent Tasks';
+
+  @override
+  String get maxConcurrentTasksHint => 'Leave empty for default';
+
+  @override
+  String get maxPagesHint => 'Leave empty for default';
+
+  @override
+  String get logs => 'Logs';
 }

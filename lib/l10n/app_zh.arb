@@ -3,7 +3,9 @@
   "homeTitle": "网站克隆器",
   "homeSubtitle": "克隆网站、截图并生成目录索引",
   "menuAccount": "账号管理",
+  "menuAccountDesc": "管理你的账号和凭据",
   "menuTask": "任务管理",
+  "menuTaskDesc": "创建和管理克隆任务",
   "settingsTitle": "设置",
   "language": "语言",
   "outputDir": "输出目录",
@@ -11,6 +13,7 @@
   "saved": "已保存",
   "outputDirUpdated": "输出目录已更新",
   "accountPageTitle": "账号管理",
+  "accountName": "账号名称",
   "totalAccounts": "账号总数：{count}",
   "addAccount": "新增账号",
   "noAccounts": "暂无账号",
@@ -36,5 +39,14 @@
   "accountForCookies": "账号（用于Cookies）",
   "cancel": "取消",
   "create": "创建",
-  "save": "保存"
+  "save": "保存",
+  "captureUrlPattern": "截图URL规则（* 为通配符）",
+  "captureUrlPatternHint": "例如：*.html 或留空捕获所有",
+  "ignoreUrlPatterns": "忽略的URL规则",
+  "addPatternHint": "输入规则后回车添加",
+  "maxConcurrentTasks": "最大并发任务数",
+  "maxConcurrentTasksHint": "留空默认",
+  "maxPagesHint": "留空默认",
+  "progress": "进度：{visited}/{total} ({percent}%)",
+  "logs": "日志"
 }

@@ -21,13 +21,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get menuAccount => '账号管理';
 
   @override
-  String get menuAccountDesc => 'Manage your accounts and credentials';
+  String get menuAccountDesc => '管理你的账号和凭据';
 
   @override
   String get menuTask => '任务管理';
 
   @override
-  String get menuTaskDesc => 'Create and manage cloning tasks';
+  String get menuTaskDesc => '创建和管理克隆任务';
 
   @override
   String get settingsTitle => '设置';
@@ -62,7 +62,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get editAccount => 'Edit Account';
 
   @override
-  String get accountName => 'Account Name';
+  String get accountName => '账号名称';
 
   @override
   String get accountNameRequired => 'Please enter account name';
@@ -139,7 +139,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String progress(Object percent, Object total, Object visited) {
-    return 'Progress: $visited/$total ($percent%)';
+    return '进度：$visited/$total ($percent%)';
   }
 
   @override
@@ -150,4 +150,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get save => '保存';
+
+  @override
+  String get captureUrlPattern => '截图URL规则（* 为通配符）';
+
+  @override
+  String get captureUrlPatternHint => '例如：*.html 或留空捕获所有';
+
+  @override
+  String get ignoreUrlPatterns => '忽略的URL规则';
+
+  @override
+  String get addPatternHint => '输入规则后回车添加';
+
+  @override
+  String get maxConcurrentTasks => '最大并发任务数';
+
+  @override
+  String get maxConcurrentTasksHint => '留空默认';
+
+  @override
+  String get maxPagesHint => '留空默认';
+
+  @override
+  String get logs => '日志';
 }

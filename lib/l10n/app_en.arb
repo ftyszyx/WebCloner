@@ -43,5 +43,13 @@
   "progress": "Progress: {visited}/{total} ({percent}%)",
   "cancel": "Cancel",
   "create": "Create",
-  "save": "Save"
+  "save": "Save",
+  "captureUrlPattern": "Capture URL Pattern (use * as wildcard)",
+  "captureUrlPatternHint": "e.g., *.html or leave empty to capture all",
+  "ignoreUrlPatterns": "Ignore URL Patterns",
+  "addPatternHint": "Add a pattern and press Enter",
+  "maxConcurrentTasks": "Max Concurrent Tasks",
+  "maxConcurrentTasksHint": "Leave empty for default",
+  "maxPagesHint": "Leave empty for default",
+  "logs": "Logs"
 }

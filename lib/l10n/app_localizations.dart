@@ -367,6 +367,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get save;
+
+  /// No description provided for @captureUrlPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture URL Pattern (use * as wildcard)'**
+  String get captureUrlPattern;
+
+  /// No description provided for @captureUrlPatternHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., *.html or leave empty to capture all'**
+  String get captureUrlPatternHint;
+
+  /// No description provided for @ignoreUrlPatterns.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore URL Patterns'**
+  String get ignoreUrlPatterns;
+
+  /// No description provided for @addPatternHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a pattern and press Enter'**
+  String get addPatternHint;
+
+  /// No description provided for @maxConcurrentTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Concurrent Tasks'**
+  String get maxConcurrentTasks;
+
+  /// No description provided for @maxConcurrentTasksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty for default'**
+  String get maxConcurrentTasksHint;
+
+  /// No description provided for @maxPagesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty for default'**
+  String get maxPagesHint;
+
+  /// No description provided for @logs.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs'**
+  String get logs;
 }
 
 class _AppLocalizationsDelegate

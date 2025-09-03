@@ -89,14 +89,14 @@ class TaskFormDialog extends StatelessWidget {
                 TextFormField(
                   controller: controller.captureUrlPatternController,
                   decoration: InputDecoration(
-                    labelText: 'Capture URL Pattern (use * as wildcard)',
+                    labelText: l10n.captureUrlPattern,
                     prefixIcon: const Icon(Icons.camera_alt),
                     filled: true,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
                     ),
-                    hintText: 'e.g., *.html or leave empty to capture all',
+                    hintText: l10n.captureUrlPatternHint,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -115,7 +115,7 @@ class TaskFormDialog extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Ignore URL Patterns',
+                        l10n.ignoreUrlPatterns,
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       const SizedBox(height: 8),
@@ -137,7 +137,7 @@ class TaskFormDialog extends StatelessWidget {
                       TextFormField(
                         controller: controller.ignoreUrlPatternInputController,
                         decoration: InputDecoration(
-                          hintText: 'Add a pattern and press Enter',
+                          hintText: l10n.addPatternHint,
                           border: InputBorder.none,
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.add),
@@ -218,15 +218,15 @@ class TaskFormDialog extends StatelessWidget {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: controller.maxTaskNumController,
-                  decoration: const InputDecoration(
-                    labelText: 'Max Concurrent Tasks',
-                    prefixIcon: Icon(Icons.sync_alt),
+                  decoration: InputDecoration(
+                    labelText: l10n.maxConcurrentTasks,
+                    prefixIcon: const Icon(Icons.sync_alt),
                     filled: true,
-                    border: OutlineInputBorder(
+                    border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(8)),
                       borderSide: BorderSide.none,
                     ),
-                    hintText: 'Leave empty for default',
+                    hintText: l10n.maxConcurrentTasksHint,
                   ),
                   keyboardType: TextInputType.number,
                 ),

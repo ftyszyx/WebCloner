@@ -80,9 +80,7 @@ class TaskPage extends GetView<TaskController> {
                       itemCount: controller.tasks.length,
                       itemBuilder: (context, index) {
                         final task = controller.tasks[index];
-                        final percent = (task.progress * 100).toStringAsFixed(
-                          1,
-                        );
+                        final percent = (task.progress * 100).toStringAsFixed( 1);
                         return Card(
                           margin: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -110,9 +108,9 @@ class TaskPage extends GetView<TaskController> {
                                 Text(l10n.urlLabel(task.url)),
                                 Text(
                                   l10n.progress(
-                                    task.visitedNum ?? 0,
-                                    task.totalPages,
                                     percent,
+                                    task.totalPages,
+                                    task.visitedNum ?? 0,
                                   ),
                                   style: const TextStyle(fontSize: 12),
                                 ),
@@ -168,7 +166,7 @@ class TaskPage extends GetView<TaskController> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Get.toNamed(Routes.logs),
         icon: const Icon(Icons.bug_report),
-        label: const Text('Logs'),
+        label: Text(l10n.logs),
       ),
     );
   }
