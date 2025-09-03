@@ -133,6 +133,11 @@ class TaskPage extends GetView<TaskController> {
                                       controller.showEditTaskDialog(task),
                                 ),
                                 IconButton(
+                                  icon: const Icon(Icons.folder_open),
+                                  onPressed: () =>
+                                      controller.openTaskDirectory(task),
+                                ),
+                                IconButton(
                                   icon: const Icon(Icons.delete),
                                   onPressed: () => controller.deleteTask(task),
                                   color: Colors.red,

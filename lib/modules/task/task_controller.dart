@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:web_cloner/models/task.dart';
@@ -55,6 +57,24 @@ class TaskController extends GetxController {
     if (confirmed == true) {
       await _taskService.deleteTask(task.id);
       // loadTasks();
+    }
+  }
+
+  void openTaskDirectory(Task task) {
+    if (task.outputPath == null || task.outputPath!.isEmpty) {
+      Get.snackbar('Error', 'Output path is not available for this task.');
+      return;
+    }
+    try {
+      if (Platform.isWindows) {
+        Process.run('explorer', [task.outputPath!]);
+      } else if (Platform.isMacOS) {
+        Process.run('open', [task.outputPath!]);
+      } else if (Platform.isLinux) {
+        Process.run('xdg-open', [task.outputPath!]);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Could not open the directory: $e');
     }
   }
 

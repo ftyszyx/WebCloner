@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'package:lpinyin/lpinyin.dart';
 import 'package:path/path.dart' as path;
 import 'package:get/get.dart';
 import 'package:web_cloner/models/task.dart';
@@ -67,7 +68,7 @@ class WebCloneService {
 
   Future<void> cloneWebsite(Task task) async {
     BrowserSession? session;
-    List<WebInfo> validWebsList;
+    late List<WebInfo> validWebsList;
     final Queue<WebInfo> needVisitWebInfos = Queue();
     final Map<String, WebInfo> validWebDic = {};
     int visitedPages = 0;
@@ -87,7 +88,7 @@ class WebCloneService {
         if (x.isCaptured) {
           capturedPages++;
         }
-        if (x.visited&&x.title.isNotEmpty) {
+        if (x.visited && x.title.isNotEmpty) {
           visitedPages++;
         } else {
           needVisitWebInfos.add(x);
@@ -169,9 +170,6 @@ class WebCloneService {
         await Future.delayed(const Duration(seconds: 1));
       }
       logger.info("任务结束");
-      validWebsList.sort((a, b) => a.title.compareTo(b.title));
-      await _generateIndexHtml(validWebsList, task);
-      await _saveTaskHistory(task, validWebsList);
       task.status = TaskStatus.completed;
       TaskService.instance.completeTask(
         task.id,
@@ -188,6 +186,17 @@ class WebCloneService {
       );
       TaskService.instance.failTask(task.id, e.toString());
     } finally {
+      if (validWebsList.isNotEmpty) {
+        logger.info("保存数据");
+        validWebsList.sort((a, b) {
+          final String pinyinA = PinyinHelper.getPinyinE(a.title);
+          final String pinyinB = PinyinHelper.getPinyinE(b.title);
+          // logger.info("pinyinA:${a.title} - $pinyinA, pinyinB: ${b.title} - $pinyinB");
+          return pinyinA.compareTo(pinyinB);
+        });
+        await _generateIndexHtml(validWebsList, task);
+        await _saveTaskHistory(task, validWebsList);
+      }
       await session?.close();
     }
   }
