@@ -46,7 +46,7 @@ class AppConfigService extends GetxService {
       );
       _isdebug = _config['isdebug'] ?? false;
     } else {
-      _config = {'logLevel': _logLevel.name, 'isdebug': _isdebug};
+      _config = {'logLevel': _logLevel.name, 'isdebug': _isdebug, 'locale': 'zh'};
       File(appConfigPath).createSync(recursive: true);
       File(appConfigPath).writeAsStringSync(json.encode(_config));
     }
@@ -65,6 +65,13 @@ class AppConfigService extends GetxService {
       (e) => e.name == getValue('logLevel', _logLevel.name),
       orElse: () => _logLevel,
     );
+  }
+  String getLocale() {
+    return getValue('locale', 'zh');
+  }
+
+  void setLocale(String locale) {
+    setValue('locale', locale);
   }
 
   T getValue<T>(dynamic key, T defaultValue) {

@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:web_cloner/l10n/app_localizations.dart';
 import 'package:web_cloner/models/init.dart';
 import 'package:web_cloner/routes/app_pages.dart';
+import 'package:web_cloner/services/app_config_service.dart';
 import 'package:web_cloner/services/init.dart';
 import 'package:web_cloner/utils/common.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:web_cloner/services/settings_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,12 +59,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
+      // Internationalization settings
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: AppConfigService.instance.getLocale(),
+
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
       builder: FlutterSmartDialog.init(),
