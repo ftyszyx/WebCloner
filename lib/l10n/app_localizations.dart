@@ -101,14 +101,164 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'WebCloner'**
+  /// **'Web Cloner'**
   String get appTitle;
 
-  /// No description provided for @taskManagement.
+  /// No description provided for @homeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Web Cloner'**
+  String get homeTitle;
+
+  /// No description provided for @homeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clone websites, capture screenshots, and generate directories'**
+  String get homeSubtitle;
+
+  /// No description provided for @menuAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Management'**
+  String get menuAccount;
+
+  /// No description provided for @menuAccountDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your accounts and credentials'**
+  String get menuAccountDesc;
+
+  /// No description provided for @menuTask.
   ///
   /// In en, this message translates to:
   /// **'Task Management'**
-  String get taskManagement;
+  String get menuTask;
+
+  /// No description provided for @menuTaskDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and manage cloning tasks'**
+  String get menuTaskDesc;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @outputDir.
+  ///
+  /// In en, this message translates to:
+  /// **'Output Directory'**
+  String get outputDir;
+
+  /// No description provided for @chooseDir.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose directory'**
+  String get chooseDir;
+
+  /// No description provided for @saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get saved;
+
+  /// No description provided for @outputDirUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Output directory updated'**
+  String get outputDirUpdated;
+
+  /// No description provided for @accountPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Management'**
+  String get accountPageTitle;
+
+  /// No description provided for @totalAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Accounts: {count}'**
+  String totalAccounts(Object count);
+
+  /// No description provided for @addAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Account'**
+  String get addAccount;
+
+  /// No description provided for @editAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Account'**
+  String get editAccount;
+
+  /// No description provided for @accountName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Name'**
+  String get accountName;
+
+  /// No description provided for @accountNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter account name'**
+  String get accountNameRequired;
+
+  /// No description provided for @noAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts found'**
+  String get noAccounts;
+
+  /// No description provided for @addAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click \"Add Account\" to create your first account'**
+  String get addAccountHint;
+
+  /// No description provided for @urlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'URL: {url}'**
+  String urlLabel(Object url);
+
+  /// No description provided for @loggedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged In'**
+  String get loggedIn;
+
+  /// No description provided for @notLoggedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Logged In'**
+  String get notLoggedIn;
+
+  /// No description provided for @loginAndSaveCookies.
+  ///
+  /// In en, this message translates to:
+  /// **'Login and save cookies'**
+  String get loginAndSaveCookies;
+
+  /// No description provided for @taskPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Task Management'**
+  String get taskPageTitle;
+
+  /// No description provided for @totalTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Tasks: {count}'**
+  String totalTasks(Object count);
 
   /// No description provided for @createTask.
   ///
@@ -116,17 +266,107 @@ abstract class AppLocalizations {
   /// **'Create Task'**
   String get createTask;
 
-  /// No description provided for @settings.
+  /// No description provided for @editTask.
   ///
   /// In en, this message translates to:
-  /// **'Settings'**
-  String get settings;
+  /// **'Edit Task'**
+  String get editTask;
 
-  /// No description provided for @language.
+  /// No description provided for @noTasks.
   ///
   /// In en, this message translates to:
-  /// **'Language'**
-  String get language;
+  /// **'No tasks found'**
+  String get noTasks;
+
+  /// No description provided for @createTaskHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click \"Create Task\" to start your first cloning task'**
+  String get createTaskHint;
+
+  /// No description provided for @taskName.
+  ///
+  /// In en, this message translates to:
+  /// **'Task Name'**
+  String get taskName;
+
+  /// No description provided for @websiteUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Website URL'**
+  String get websiteUrl;
+
+  /// No description provided for @urlInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid URL'**
+  String get urlInvalid;
+
+  /// No description provided for @urlRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter website URL'**
+  String get urlRequired;
+
+  /// No description provided for @taskNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter task name'**
+  String get taskNameRequired;
+
+  /// No description provided for @urlPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'URL Pattern (use * as wildcard)'**
+  String get urlPattern;
+
+  /// No description provided for @allowedDomains.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed Domains'**
+  String get allowedDomains;
+
+  /// No description provided for @addDomainHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a domain and press Enter'**
+  String get addDomainHint;
+
+  /// No description provided for @maxPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Pages'**
+  String get maxPages;
+
+  /// No description provided for @accountForCookies.
+  ///
+  /// In en, this message translates to:
+  /// **'Account (for cookies)'**
+  String get accountForCookies;
+
+  /// No description provided for @progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress: {visited}/{total} ({percent}%)'**
+  String progress(Object percent, Object total, Object visited);
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
 }
 
 class _AppLocalizationsDelegate

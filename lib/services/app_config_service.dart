@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'logger.dart';
@@ -19,7 +20,8 @@ class AppConfigService extends GetxService {
   String get appConfigPath => _appConfigPath;
 
   String get chromeDataPath => path.join(_appDataPath, 'chrome-data');
-  String get outputDir => path.join(_appDataPath, 'output');
+  String get outputDir =>
+      _config['outputDir'] ?? path.join(_appDataPath, 'output');
 
   final String _userAgent =
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
@@ -46,7 +48,12 @@ class AppConfigService extends GetxService {
       );
       _isdebug = _config['isdebug'] ?? false;
     } else {
-      _config = {'logLevel': _logLevel.name, 'isdebug': _isdebug, 'locale': 'zh'};
+      _config = {
+        'logLevel': _logLevel.name,
+        'isdebug': _isdebug,
+        'locale': 'zh',
+        // outputDir omitted -> falls back to appData/output
+      };
       File(appConfigPath).createSync(recursive: true);
       File(appConfigPath).writeAsStringSync(json.encode(_config));
     }
@@ -66,12 +73,24 @@ class AppConfigService extends GetxService {
       orElse: () => _logLevel,
     );
   }
-  String getLocale() {
+
+  Locale getLocale() {
+    return Locale(getLocaleStr());
+  }
+
+  String getLocaleStr() {
     return getValue('locale', 'zh');
   }
 
   void setLocale(String locale) {
     setValue('locale', locale);
+  }
+
+  void setOutputDir(String dir) {
+    setValue('outputDir', dir);
+    if (!Directory(dir).existsSync()) {
+      Directory(dir).createSync(recursive: true);
+    }
   }
 
   T getValue<T>(dynamic key, T defaultValue) {

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:web_cloner/modules/account/account_controller.dart';
+import 'package:web_cloner/l10n/app_localizations.dart';
 
 class AccountPage extends GetView<AccountController> {
   const AccountPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Account Management'),
+        title: Text(l10n.accountPageTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -24,7 +26,7 @@ class AccountPage extends GetView<AccountController> {
                 Expanded(
                   child: Obx(
                     () => Text(
-                      'Total Accounts: ${controller.accounts.length}',
+                      l10n.totalAccounts(controller.accounts.length),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -35,7 +37,7 @@ class AccountPage extends GetView<AccountController> {
                 ElevatedButton.icon(
                   onPressed: () => controller.showAddAccountDialog(),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add Account'),
+                  label: Text(l10n.addAccount),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
@@ -47,24 +49,27 @@ class AccountPage extends GetView<AccountController> {
           Expanded(
             child: Obx(
               () => controller.accounts.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.account_circle_outlined,
                             size: 80,
                             color: Colors.grey,
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Text(
-                            'No accounts found',
-                            style: TextStyle(fontSize: 18, color: Colors.grey),
+                            l10n.noAccounts,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            'Click "Add Account" to create your first account',
-                            style: TextStyle(color: Colors.grey),
+                            l10n.addAccountHint,
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ],
                       ),
@@ -103,11 +108,13 @@ class AccountPage extends GetView<AccountController> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('URL: ${account.url}'),
+                                Text(l10n.urlLabel(account.url)),
                                 const SizedBox(height: 4),
                                 Chip(
                                   label: Text(
-                                    isLoggedIn ? 'Logged In' : 'Not Logged In',
+                                    isLoggedIn
+                                        ? l10n.loggedIn
+                                        : l10n.notLoggedIn,
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: isLoggedIn
@@ -137,7 +144,7 @@ class AccountPage extends GetView<AccountController> {
                                     color: Theme.of(context).primaryColor,
                                   ),
                                   onPressed: () => controller.login(account),
-                                  tooltip: 'Login and save cookies',
+                                  tooltip: l10n.loginAndSaveCookies,
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.edit),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web_cloner/l10n/app_localizations.dart';
 import 'package:web_cloner/models/account.dart';
 
 class AccountFormDialog extends StatelessWidget {
@@ -11,8 +12,9 @@ class AccountFormDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(_AccountFormDialogController(account));
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(account == null ? 'Add Account' : 'Edit Account'),
+      title: Text(account == null ? l10n.addAccount : l10n.editAccount),
       content: Form(
         key: controller.formKey,
         child: SingleChildScrollView(
@@ -21,13 +23,13 @@ class AccountFormDialog extends StatelessWidget {
             children: [
               TextFormField(
                 controller: controller.nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Account Name',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.accountName,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter account name';
+                    return l10n.accountNameRequired;
                   }
                   return null;
                 },
@@ -35,18 +37,18 @@ class AccountFormDialog extends StatelessWidget {
               const SizedBox(height: 16),
               TextFormField(
                 controller: controller.urlController,
-                decoration: const InputDecoration(
-                  labelText: 'Website URL',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.websiteUrl,
+                  border: const OutlineInputBorder(),
                   hintText: 'https://example.com',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter website URL';
+                    return l10n.urlRequired;
                   }
                   final uri = Uri.tryParse(value);
                   if (uri == null || !uri.isAbsolute) {
-                    return 'Please enter a valid URL';
+                    return l10n.urlInvalid;
                   }
                   return null;
                 },
@@ -56,10 +58,10 @@ class AccountFormDialog extends StatelessWidget {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Get.back(), child: Text(l10n.cancel)),
         ElevatedButton(
           onPressed: () => controller.saveAccount(),
-          child: Text(account == null ? 'Add' : 'Save'),
+          child: Text(account == null ? l10n.addAccount : l10n.save),
         ),
       ],
     );

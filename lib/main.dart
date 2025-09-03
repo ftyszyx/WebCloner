@@ -12,7 +12,6 @@ import 'package:web_cloner/utils/common.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:web_cloner/services/settings_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +62,6 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: AppConfigService.instance.getLocale(),
-
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
       builder: FlutterSmartDialog.init(),

@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:web_cloner/modules/task/task_controller.dart';
 import 'package:web_cloner/models/task.dart';
+import 'package:web_cloner/l10n/app_localizations.dart';
 
 class TaskPage extends GetView<TaskController> {
   const TaskPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task Management'),
+        title: Text(l10n.taskPageTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -25,7 +27,7 @@ class TaskPage extends GetView<TaskController> {
                 Expanded(
                   child: Obx(
                     () => Text(
-                      'Total Tasks: ${controller.tasks.length}',
+                      l10n.totalTasks(controller.tasks.length),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -36,7 +38,7 @@ class TaskPage extends GetView<TaskController> {
                 ElevatedButton.icon(
                   onPressed: () => controller.showAddTaskDialog(),
                   icon: const Icon(Icons.add),
-                  label: const Text('Create Task'),
+                  label: Text(l10n.createTask),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
@@ -48,24 +50,27 @@ class TaskPage extends GetView<TaskController> {
           Expanded(
             child: Obx(
               () => controller.tasks.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.task_outlined,
                             size: 80,
                             color: Colors.grey,
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Text(
-                            'No tasks found',
-                            style: TextStyle(fontSize: 18, color: Colors.grey),
+                            l10n.noTasks,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
-                            'Click "Create Task" to start your first cloning task',
-                            style: TextStyle(color: Colors.grey),
+                            l10n.createTaskHint,
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ],
                       ),
@@ -74,6 +79,9 @@ class TaskPage extends GetView<TaskController> {
                       itemCount: controller.tasks.length,
                       itemBuilder: (context, index) {
                         final task = controller.tasks[index];
+                        final percent = (task.progress * 100).toStringAsFixed(
+                          1,
+                        );
                         return Card(
                           margin: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -98,9 +106,13 @@ class TaskPage extends GetView<TaskController> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('URL: ${task.url}'),
+                                Text(l10n.urlLabel(task.url)),
                                 Text(
-                                  'Progress: ${task.visitedNum}/${task.totalPages} (${(task.progress * 100).toStringAsFixed(1)}%)',
+                                  l10n.progress(
+                                    task.visitedNum,
+                                    task.totalPages,
+                                    percent,
+                                  ),
                                   style: const TextStyle(fontSize: 12),
                                 ),
                                 LinearProgressIndicator(

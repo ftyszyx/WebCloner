@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:web_cloner/models/account.dart';
 import 'package:web_cloner/models/task.dart';
 import 'package:web_cloner/services/account_service.dart';
+import 'package:web_cloner/l10n/app_localizations.dart';
 
 class TaskFormDialog extends StatelessWidget {
   final Task? task;
@@ -13,10 +14,11 @@ class TaskFormDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(_TaskFormDialogController(task));
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        task == null ? 'Create Task' : 'Edit Task',
+        task == null ? l10n.create : l10n.editTask,
         style: Theme.of(context).textTheme.headlineSmall,
       ),
       content: SizedBox(
@@ -30,7 +32,7 @@ class TaskFormDialog extends StatelessWidget {
                 TextFormField(
                   controller: controller.nameController,
                   decoration: InputDecoration(
-                    labelText: 'Task Name',
+                    labelText: l10n.taskName,
                     prefixIcon: const Icon(Icons.label_outline),
                     filled: true,
                     border: OutlineInputBorder(
@@ -40,7 +42,7 @@ class TaskFormDialog extends StatelessWidget {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter task name';
+                      return l10n.taskNameRequired;
                     }
                     return null;
                   },
@@ -49,7 +51,7 @@ class TaskFormDialog extends StatelessWidget {
                 TextFormField(
                   controller: controller.urlController,
                   decoration: InputDecoration(
-                    labelText: 'Website URL',
+                    labelText: l10n.websiteUrl,
                     prefixIcon: const Icon(Icons.link),
                     filled: true,
                     border: OutlineInputBorder(
@@ -60,11 +62,11 @@ class TaskFormDialog extends StatelessWidget {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter website URL';
+                      return l10n.urlRequired;
                     }
                     final uri = Uri.tryParse(value);
                     if (uri == null || !uri.isAbsolute) {
-                      return 'Please enter a valid URL';
+                      return l10n.urlInvalid;
                     }
                     return null;
                   },
@@ -73,7 +75,7 @@ class TaskFormDialog extends StatelessWidget {
                 TextFormField(
                   controller: controller.urlPatternController,
                   decoration: InputDecoration(
-                    labelText: 'URL Pattern (use * as wildcard)',
+                    labelText: l10n.urlPattern,
                     prefixIcon: const Icon(Icons.pattern),
                     filled: true,
                     border: OutlineInputBorder(
@@ -125,8 +127,8 @@ class TaskFormDialog extends StatelessWidget {
                               .map(
                                 (pattern) => Chip(
                                   label: Text(pattern),
-                                  onDeleted: () =>
-                                      controller.removeIgnoreUrlPattern(pattern),
+                                  onDeleted: () => controller
+                                      .removeIgnoreUrlPattern(pattern),
                                 ),
                               )
                               .toList(),
@@ -164,7 +166,7 @@ class TaskFormDialog extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Allowed Domains',
+                        l10n.allowedDomains,
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       const SizedBox(height: 8),
@@ -186,7 +188,7 @@ class TaskFormDialog extends StatelessWidget {
                       TextFormField(
                         controller: controller.domainInputController,
                         decoration: InputDecoration(
-                          hintText: 'Add a domain and press Enter',
+                          hintText: l10n.addDomainHint,
                           border: InputBorder.none,
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.add),
@@ -202,7 +204,7 @@ class TaskFormDialog extends StatelessWidget {
                 TextFormField(
                   controller: controller.maxPagesController,
                   decoration: InputDecoration(
-                    labelText: 'Max Pages',
+                    labelText: l10n.maxPages,
                     prefixIcon: const Icon(Icons.filter_9_plus_outlined),
                     filled: true,
                     border: OutlineInputBorder(
@@ -216,9 +218,9 @@ class TaskFormDialog extends StatelessWidget {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: controller.maxTaskNumController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Max Concurrent Tasks',
-                    prefixIcon: const Icon(Icons.sync_alt),
+                    prefixIcon: Icon(Icons.sync_alt),
                     filled: true,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -233,7 +235,7 @@ class TaskFormDialog extends StatelessWidget {
                   () => DropdownButtonFormField<String>(
                     initialValue: controller.selectedAccountId.value,
                     decoration: InputDecoration(
-                      labelText: 'Account (for cookies)',
+                      labelText: l10n.accountForCookies,
                       prefixIcon: const Icon(Icons.account_circle_outlined),
                       filled: true,
                       border: OutlineInputBorder(
@@ -260,7 +262,7 @@ class TaskFormDialog extends StatelessWidget {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Get.back(), child: Text(l10n.cancel)),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -269,7 +271,7 @@ class TaskFormDialog extends StatelessWidget {
             ),
           ),
           onPressed: () => controller.saveTask(),
-          child: Text(task == null ? 'Create' : 'Save'),
+          child: Text(task == null ? l10n.create : l10n.save),
         ),
       ],
     );

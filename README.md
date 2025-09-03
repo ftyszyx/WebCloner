@@ -124,6 +124,13 @@ cloned_sites/
 
 如有问题或建议，请通过GitHub Issues联系我们。
 
+## 多语言
+
+https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization
+
+fltter pub get 或者 flutter run会自动生成相关文件
+也可以通过 flutter gen-l10n  生成
+
 
 ## todos
 1. 增加日志页面
