@@ -178,4 +178,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logs => 'Logs';
+
+  @override
+  String get none => 'None';
 }

@@ -14,10 +14,16 @@ class AccountFormDialog extends StatelessWidget {
     final controller = Get.put(_AccountFormDialogController(account));
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(account == null ? l10n.addAccount : l10n.editAccount),
-      content: Form(
-        key: controller.formKey,
-        child: SingleChildScrollView(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        account == null ? l10n.addAccount : l10n.editAccount,
+        style: Theme.of(context).textTheme.headlineSmall,
+      ),
+      content: SizedBox(
+        width: 400,
+        child: Form(
+          key: controller.formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -25,7 +31,14 @@ class AccountFormDialog extends StatelessWidget {
                 controller: controller.nameController,
                 decoration: InputDecoration(
                   labelText: l10n.accountName,
-                  border: const OutlineInputBorder(),
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  prefixIcon: const Icon(Icons.person_outline),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -39,7 +52,14 @@ class AccountFormDialog extends StatelessWidget {
                 controller: controller.urlController,
                 decoration: InputDecoration(
                   labelText: l10n.websiteUrl,
-                  border: const OutlineInputBorder(),
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  prefixIcon: const Icon(Icons.link),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
                   hintText: 'https://example.com',
                 ),
                 validator: (value) {
@@ -60,6 +80,14 @@ class AccountFormDialog extends StatelessWidget {
       actions: [
         TextButton(onPressed: () => Get.back(), child: Text(l10n.cancel)),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           onPressed: () => controller.saveAccount(),
           child: Text(account == null ? l10n.addAccount : l10n.save),
         ),

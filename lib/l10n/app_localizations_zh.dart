@@ -158,7 +158,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get captureUrlPatternHint => '例如：*.html 或留空捕获所有';
 
   @override
-  String get ignoreUrlPatterns => '忽略的URL规则';
+  String get ignoreUrlPatterns => '忽略的URL规则(*为通配符)';
 
   @override
   String get addPatternHint => '输入规则后回车添加';
@@ -174,4 +174,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get logs => '日志';
+
+  @override
+  String get none => '无';
 }

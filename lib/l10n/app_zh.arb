@@ -42,11 +42,12 @@
   "save": "保存",
   "captureUrlPattern": "截图URL规则（* 为通配符）",
   "captureUrlPatternHint": "例如：*.html 或留空捕获所有",
-  "ignoreUrlPatterns": "忽略的URL规则",
+  "ignoreUrlPatterns": "忽略的URL规则(*为通配符)",
   "addPatternHint": "输入规则后回车添加",
   "maxConcurrentTasks": "最大并发任务数",
   "maxConcurrentTasksHint": "留空默认",
   "maxPagesHint": "留空默认",
   "progress": "进度：{visited}/{total} ({percent}%)",
-  "logs": "日志"
+  "logs": "日志",
+  "none": "无"
 }

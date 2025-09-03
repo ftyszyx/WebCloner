@@ -51,5 +51,6 @@
   "maxConcurrentTasks": "Max Concurrent Tasks",
   "maxConcurrentTasksHint": "Leave empty for default",
   "maxPagesHint": "Leave empty for default",
-  "logs": "Logs"
+  "logs": "Logs",
+  "none": "None"
 }

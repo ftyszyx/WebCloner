@@ -32,12 +32,6 @@ cd WebCloner
 flutter pub get
 ```
 
-### 3. 生成Hive适配器
-
-```bash
-flutter packages pub run build_runner build
-```
-
 ### 4. 运行应用
 
 ```bash
@@ -58,40 +52,20 @@ flutter run -d windows
 
 1. 点击"Task Management"进入任务管理页面
 2. 点击"Create Task"创建新任务
-3. 选择克隆类型：
-   - **Single Page**: 克隆单个页面
-   - **Multiple Pages**: 克隆多个页面
-   - **Full Website**: 克隆整个网站
-4. 输入任务名称和网站URL
-5. 启动、暂停或删除任务
+3. 输入任务名称和网站URL
+4. 启动、暂停或删除任务
 
-### 克隆类型
-
-- **单页面克隆**: 适合只需要单个页面截图和HTML的情况
-- **多页面克隆**: 适合需要克隆网站中特定页面的情况
-- **全站克隆**: 自动爬取网站结构并克隆所有页面
 
 ## 输出文件
 
 克隆任务完成后，会在应用数据目录下生成以下文件：
 
-```
-cloned_sites/
-└── [task_id]/
-    ├── page_001.png         # 页面截图
-    ├── page_001.html        # 页面HTML
-    ├── page_002.png
-    ├── page_002.html
-    └── directory.txt        # 网页目录
-```
 
 ## 技术栈
 
 - **前端框架**: Flutter
 - **状态管理**: GetX
 - **本地存储**: Hive
-- **网络请求**: HTTP
-- **桌面支持**: window_manager
 - **UI组件**: Material Design 3
 
 ## 开发说明
@@ -110,7 +84,6 @@ cloned_sites/
 1. 继承`HiveObject`
 2. 使用`@HiveType`注解
 3. 为每个字段添加`@HiveField`注解
-4. 运行`build_runner`生成适配器代码
 
 ## 许可证
 
@@ -126,18 +99,15 @@ cloned_sites/
 
 ## 多语言
 
+```
 https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization
+```
 
 fltter pub get 或者 flutter run会自动生成相关文件
 也可以通过 flutter gen-l10n  生成
 
 
 ## todos
-1. 增加日志页面
-3. 爬取网页可以多page页同时进行
-4. 爬取方式可以分两种类型：
+1. 爬取方式可以分两种类型：
     通用方式（现在的形式）
     定制方式，不同的网站，定制化采集，同时保存makdown和图片
-5. 生成的网页，增加搜索窗口，快速定位
-6. 生成的网页，能根据字母排序，并分类
-7. 支持多语言
