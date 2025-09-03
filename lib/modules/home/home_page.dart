@@ -77,6 +77,11 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Get.toNamed(Routes.logs),
+        icon: const Icon(Icons.bug_report),
+        label: const Text('Logs'),
+      ),
     );
   }
 

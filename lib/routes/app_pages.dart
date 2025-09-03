@@ -6,6 +6,7 @@ import 'package:web_cloner/modules/task/task_page.dart';
 import 'package:web_cloner/modules/home/home_page.dart';
 import 'package:web_cloner/modules/settings/settings_page.dart';
 import 'package:web_cloner/modules/settings/settings_controller.dart';
+import 'package:web_cloner/modules/logs/logs_page.dart';
 
 part 'app_routes.dart';
 
@@ -37,5 +38,6 @@ class AppPages {
         Get.lazyPut(() => SettingsController());
       }),
     ),
+    GetPage(name: Routes.logs, page: () => const LogsPage()),
   ];
 }

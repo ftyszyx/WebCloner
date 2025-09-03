@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:web_cloner/modules/task/task_controller.dart';
 import 'package:web_cloner/models/task.dart';
 import 'package:web_cloner/l10n/app_localizations.dart';
+import 'package:web_cloner/routes/app_pages.dart';
 
 class TaskPage extends GetView<TaskController> {
   const TaskPage({super.key});
@@ -109,7 +110,7 @@ class TaskPage extends GetView<TaskController> {
                                 Text(l10n.urlLabel(task.url)),
                                 Text(
                                   l10n.progress(
-                                    task.visitedNum,
+                                    task.visitedNum ?? 0,
                                     task.totalPages,
                                     percent,
                                   ),
@@ -163,6 +164,11 @@ class TaskPage extends GetView<TaskController> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Get.toNamed(Routes.logs),
+        icon: const Icon(Icons.bug_report),
+        label: const Text('Logs'),
       ),
     );
   }

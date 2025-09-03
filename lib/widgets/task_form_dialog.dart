@@ -223,7 +223,7 @@ class TaskFormDialog extends StatelessWidget {
                     prefixIcon: Icon(Icons.sync_alt),
                     filled: true,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
                       borderSide: BorderSide.none,
                     ),
                     hintText: 'Leave empty for default',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:web_cloner/modules/account/account_controller.dart';
 import 'package:web_cloner/l10n/app_localizations.dart';
+import 'package:web_cloner/routes/app_pages.dart';
 
 class AccountPage extends GetView<AccountController> {
   const AccountPage({super.key});
@@ -166,6 +167,11 @@ class AccountPage extends GetView<AccountController> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Get.toNamed(Routes.logs),
+        icon: const Icon(Icons.bug_report),
+        label: const Text('Logs'),
       ),
     );
   }
