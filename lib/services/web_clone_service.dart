@@ -363,18 +363,110 @@ class WebCloneService {
       '<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Web Cloner Index</title>',
     );
     buf.writeln(
-      '<style>body{max-width:1000px;margin:0 auto;padding:24px;font-family:system-ui}ul{list-style:none;padding:0;display:grid;gap:10px}li{border:1px solid #ddd;border-radius:6px;padding:10px}</style>',
+      '<style>body{max-width:1100px;margin:0 auto;padding:24px;font-family:system-ui}h1{margin:0 0 16px}#searchbar{position:sticky;top:0;background:#fff;padding:12px 0;z-index:10}#search{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px}#alpha-nav{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 16px}#alpha-nav a{display:inline-block;padding:6px 10px;border:1px solid #ddd;border-radius:6px;text-decoration:none;color:#333}#alpha-nav a:hover{background:#f5f5f5}.group{margin:18px 0 8px;border-bottom:1px solid #eee;padding-bottom:4px}.group-list{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}.item{border:1px solid #ddd;border-radius:6px;padding:10px}.item a{text-decoration:none;color:#0a58ca;word-break:break-all}.item small{color:#666}</style>',
     );
-    buf.writeln('</head><body><h1>克隆页面索引</h1><ul>');
-    for (int i = 0; i < items.length; i++) {
-      final it = items[i];
+    buf.writeln('</head><body>');
+    buf.writeln('<h1>克隆页面索引</h1>');
+    buf.writeln(
+      '<div id="searchbar"><input id="search" type="text" placeholder="搜索标题或URL..." /></div>',
+    );
+
+    // 分组: 按标题拼音首字母 (A-Z), 其他归为 '#'
+    final Map<String, List<WebInfo>> groups = <String, List<WebInfo>>{};
+    for (final it in items) {
       if (it.isCaptured == false) continue;
-      final pngName = path.basename(it.pngPath);
-      buf.writeln(
-        '<li>${i + 1}. <a href="resources/$pngName">${_escapeHtml(it.title)}</a> — <small>${_escapeHtml(it.url)}</small></li>',
-      );
+      final String pinyin = PinyinHelper.getPinyinE(it.title);
+      String letter = pinyin.isNotEmpty ? pinyin[0].toUpperCase() : '#';
+      if (!RegExp(r'^[A-Z]$').hasMatch(letter)) {
+        letter = '#';
+      }
+      groups.putIfAbsent(letter, () => <WebInfo>[]).add(it);
     }
-    buf.writeln('</ul></body></html>');
+    final List<String> order = [
+      'A',
+      'B',
+      'C',
+      'D',
+      'E',
+      'F',
+      'G',
+      'H',
+      'I',
+      'J',
+      'K',
+      'L',
+      'M',
+      'N',
+      'O',
+      'P',
+      'Q',
+      'R',
+      'S',
+      'T',
+      'U',
+      'V',
+      'W',
+      'X',
+      'Y',
+      'Z',
+      '#',
+    ];
+    final List<String> present = order
+        .where((l) => groups.containsKey(l))
+        .toList();
+
+    // 字母索引导航
+    buf.writeln('<div id="alpha-nav">');
+    for (final l in present) {
+      buf.writeln('<a href="#sec-$l">$l</a>');
+    }
+    buf.writeln('</div>');
+
+    // 分组列表
+    for (final l in present) {
+      buf.writeln('<h2 class="group" id="sec-$l">$l</h2>');
+      buf.writeln('<ul class="group-list">');
+      final list = groups[l]!;
+      for (int i = 0; i < list.length; i++) {
+        final it = list[i];
+        final pngName = path.basename(it.pngPath);
+        final escTitle = _escapeHtml(it.title);
+        final escUrl = _escapeHtml(it.url);
+        final dataTitle = _escapeHtml(it.title.toLowerCase());
+        final dataUrl = _escapeHtml(it.url.toLowerCase());
+        buf.writeln(
+          '<li class="item" data-title="$dataTitle" data-url="$dataUrl"><a href="resources/$pngName">$escTitle</a> — <small>$escUrl</small></li>',
+        );
+      }
+      buf.writeln('</ul>');
+    }
+
+    // 简单前端搜索脚本
+    buf.writeln('''
+<script>
+const q = document.getElementById("search");
+function applyFilter() {
+  const s = (q.value || "").trim().toLowerCase();
+  const groups = Array.from(document.querySelectorAll("h2.group"));
+  groups.forEach(g => {
+    const ul = g.nextElementSibling;
+    if (!ul) return;
+    let visible = 0;
+    ul.querySelectorAll("li.item").forEach(li => {
+      const t = li.dataset.title || "";
+      const u = li.dataset.url || "";
+      const ok = s === "" || t.includes(s) || u.includes(s);
+      li.style.display = ok ? "" : "none";
+      if (ok) visible++;
+    });
+    g.style.display = visible > 0 ? "" : "none";
+    ul.style.display = visible > 0 ? "" : "none";
+  });
+}
+q.addEventListener("input", applyFilter);
+</script>
+''');
+    buf.writeln('</body></html>');
     final file = File(path.join(outputPath, 'index.html'));
     await file.writeAsString(buf.toString());
   }
