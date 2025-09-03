@@ -111,6 +111,9 @@ class WebCloneService {
         if (validWebDic.containsKey(url)) {
           return;
         }
+        if (_checkUrlIsValid(url, task) == false) {
+          return;
+        }
         final info = WebInfo(
           url: url,
           pngPath: _getPngPath(task, url),
@@ -134,32 +137,32 @@ class WebCloneService {
       if (validWebsList.isEmpty) {
         addNewUrl(task.url);
       }
-      while (needVisitWebInfos.isNotEmpty) {
+      final int maxConcurrent =
+          (task.maxTaskNum != null && task.maxTaskNum! > 0)
+          ? task.maxTaskNum!
+          : 2;
+      final Set<Future<void>> active = <Future<void>>{};
+
+      bool hasCapacity() {
+        if (task.maxPages <= 0) return true;
+        return capturedPages < task.maxPages;
+      }
+
+      Future<void> startOne() async {
+        if (needVisitWebInfos.isEmpty) return;
         final info = needVisitWebInfos.removeFirst();
         info.visited = true;
         visitedPages++;
-        final (isOk, errMesg) = await _scrawlSite(session, info, cookies, (
-          url,
-        ) {
-          if (validWebDic.containsKey(url)) {
-            return;
-          }
-          if (_checkUrlIsValid(url, task) == false) {
-            // logger.info('url is not valid: $url');
-            return;
-          }
-          addNewUrl(url);
-        }, task);
+        final (isOk, errMesg) = await _scrawlSite(
+          session!,
+          info,
+          cookies,
+          addNewUrl,
+          task,
+        );
         if (isOk) {
           info.isCaptured = true;
           capturedPages++;
-          if (task.maxPages > 0 && capturedPages >= task.maxPages) {
-            logger.info('超过最大数量: ${task.maxPages}');
-            break;
-          }
-        }
-        if (task.status == TaskStatus.paused) {
-          break;
         }
         TaskService.instance.updateTaskProgress(
           task.id,
@@ -167,7 +170,31 @@ class WebCloneService {
           capturedPages,
           visitedPages,
         );
-        await Future.delayed(const Duration(seconds: 1));
+      }
+
+      while ((needVisitWebInfos.isNotEmpty && hasCapacity()) ||
+          active.isNotEmpty) {
+        while (active.length < maxConcurrent &&
+            needVisitWebInfos.isNotEmpty &&
+            hasCapacity() &&
+            task.status != TaskStatus.paused) {
+          final f = startOne();
+          active.add(f);
+          f.whenComplete(() {
+            active.remove(f);
+          });
+        }
+        if (task.status == TaskStatus.paused) {
+          break;
+        }
+        if (task.maxPages > 0 && capturedPages >= task.maxPages) {
+          logger.info('超过最大数量: ${task.maxPages}');
+          break;
+        }
+        if (active.isEmpty) {
+          break;
+        }
+        await Future.any(active);
       }
       logger.info("任务结束");
       task.status = TaskStatus.completed;
