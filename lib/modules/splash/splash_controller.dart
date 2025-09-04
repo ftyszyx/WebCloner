@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:web_cloner/modules/core/event.dart';
 import 'package:web_cloner/routes/app_pages.dart';
+import 'package:web_cloner/services/logger.dart';
 import 'package:web_cloner/services/init.dart';
-import 'package:web_cloner/services/resource_service.dart';
 import 'package:web_cloner/utils/event_bus.dart';
 
 class SplashController extends GetxController {
@@ -12,29 +12,26 @@ class SplashController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    EventBus.instance.listen(Event.loadingProgress, onLoadingProgress);
+    EventBus.instance.listenTyped<(double, String)>(
+      Event.loadingProgress,
+      onLoadingProgress,
+    );
     _start();
   }
 
-  void onLoadingProgress(double progress, String message) {
-    this.progress.value = progress.clamp(0, 1);
-    this.message.value = message;
+  void onLoadingProgress((double, String) data) {
+    final (progressArg, messageArg) = data;
+    progress.value = progressArg.clamp(0, 1);
+    message.value = messageArg;
   }
 
   Future<void> _start() async {
     try {
-      final rs = Get.put(ResourceService());
-      ever<double>(rs.progress, (p) => progress.value = p);
-      ever<String>(rs.message, (m) => message.value = m);
-      await ServiceManager.initWithProgress((p, msg) {
-        progress.value = p.clamp(0, 1);
-        message.value = msg;
-      });
+      await ServiceManager.initWithProgress();
       Get.offAllNamed(Routes.home);
-    } catch (e) {
+    } catch (e, s) {
+      logger.error('初始化失败：$e', error: e, stackTrace: s);
       message.value = '初始化失败：$e';
     }
   }
 }
-
-

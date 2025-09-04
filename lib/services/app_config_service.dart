@@ -2,11 +2,17 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:web_cloner/modules/core/const.dart';
 import 'logger.dart';
 import 'package:path/path.dart' as path;
 import 'dart:io';
+import 'package:yaml/yaml.dart';
 
 class AppConfigService extends GetxService {
+  String appTitle = "";
+  String chromeAssetUrl = "";
+  String ffmpegAssetUrl = "";
+
   LogLevel _logLevel = LogLevel.info;
   LogLevel get logLevel => _logLevel;
 
@@ -18,6 +24,8 @@ class AppConfigService extends GetxService {
 
   late String _appConfigPath;
   String get appConfigPath => _appConfigPath;
+
+  String get chromeDir => path.join(_appDataPath, GlobalConst.chromeDir);
 
   String get chromeDataPath => path.join(_appDataPath, 'chrome-data');
   String get outputDir =>
@@ -35,6 +43,13 @@ class AppConfigService extends GetxService {
 
   static AppConfigService get instance => Get.find<AppConfigService>();
   Future init() async {
+    final appConfig = File(
+      path.join(Directory.current.path, 'assets', 'app_config.yaml'),
+    ).readAsStringSync();
+    final appConfigMap = loadYaml(appConfig);
+    appTitle = appConfigMap['app_title'];
+    chromeAssetUrl = appConfigMap['chrome_asset_url'];
+    ffmpegAssetUrl = appConfigMap['ffmpeg_asset_url'];
     _appDataPath = (await getApplicationSupportDirectory()).path;
     _appCachePath = (await getApplicationCacheDirectory()).path;
     final appConfigPath = path.join(_appDataPath, 'config.json');

@@ -112,7 +112,7 @@ fltter pub get 或者 flutter run会自动生成相关文件
     通用方式（现在的形式）
     定制方式，不同的网站，定制化采集，同时保存makdown和图片
 
-1. chrome 资源不打进包里，打开软件时下载，减小包体
+1. chrome 资源不打进包里，打开软件时下载，减小包体(ok)
 chrome asset:
 https://bytefuse.oss-cn-guangzhou.aliyuncs.com/res/chrome-win140.0.7281.0.zip
 ffmpeg asset:
@@ -121,4 +121,4 @@ https://bytefuse.oss-cn-guangzhou.aliyuncs.com/res/ffmpeg_win_7.11.zip
 
 图标：
 ImageMagick:
-magick assets/app_icon_256.png assets/app_icon.ico
+magick app4.svg -background none  -define icon:auto-resize="256,128,64,48,32,16" app_icon.ico

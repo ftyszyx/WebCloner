@@ -54,3 +54,4 @@ app.*.map.json
 cloned_sites/
 assets/chrome-win/
 python/
+output/

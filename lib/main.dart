@@ -43,7 +43,7 @@ Future initWindow() async {
 Future initServices() async {
   await ModelManager.init();
   CommonUtils.packageInfo = await PackageInfo.fromPlatform();
-  // await ServiceManager.init();
+  await ServiceManager.init();
 }
 
 class MyApp extends StatelessWidget {
