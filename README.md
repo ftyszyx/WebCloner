@@ -111,3 +111,14 @@ fltter pub get 或者 flutter run会自动生成相关文件
 1. 爬取方式可以分两种类型：
     通用方式（现在的形式）
     定制方式，不同的网站，定制化采集，同时保存makdown和图片
+
+1. chrome 资源不打进包里，打开软件时下载，减小包体
+chrome asset:
+https://bytefuse.oss-cn-guangzhou.aliyuncs.com/res/chrome-win140.0.7281.0.zip
+ffmpeg asset:
+https://bytefuse.oss-cn-guangzhou.aliyuncs.com/res/ffmpeg_win_7.11.zip
+
+
+图标：
+ImageMagick:
+magick assets/app_icon_256.png assets/app_icon.ico

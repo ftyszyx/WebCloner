@@ -130,17 +130,13 @@ class BrowerService {
 
   Future<BrowserSession> runBrowser({bool forceShowBrowser = false}) async {
     try {
-      final String exeDir = path.dirname(Platform.resolvedExecutable);
       final String chromiumPath = path.join(
-        exeDir,
-        'data',
-        'flutter_assets',
-        'assets',
+        AppConfigService.instance.appDataPath,
         'chrome-win',
         'chrome.exe',
       );
       if (!await File(chromiumPath).exists()) {
-        throw Exception('打包的 chrome.exe 未找到，路径: $chromiumPath');
+        throw Exception('chrome.exe 未找到，请先完成资源下载，路径: $chromiumPath');
       }
       final args = ['--disable-dev-shm-usage'];
       args.add('--no-sandbox');

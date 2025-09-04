@@ -38,6 +38,7 @@ dependencies:
     path: packages/puppeteer
   dio: ^5.9.0
   lpinyin: ^2.0.3
+  archive: ^4.0.7
 
 dev_dependencies:
   flutter_test:
@@ -52,8 +53,3 @@ flutter:
 
   assets:
     - assets/app_config.yaml
-    - assets/chrome-win/
-    - assets/chrome-win/locales/
-    - assets/chrome-win/MEIPreload/
-    - assets/chrome-win/PrivacySandboxAttestationsPreloaded/
-    - assets/chrome-win/IwaKeyDistribution/

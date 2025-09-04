@@ -1,0 +1,14 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="200" height="200" fill="#f0f2f5"/>
+
+  <!-- 主体：一个简洁的文件夹或文档图标，代表存储 -->
+  <rect x="40" y="50" width="120" height="100" rx="10" ry="10" fill="#ffffff" stroke="#3366cc" stroke-width="6"/>
+
+  <!-- 象征“内容”的线条 -->
+  <rect x="60" y="75" width="80" height="8" rx="2" ry="2" fill="#e0e0e0"/>
+  <rect x="60" y="95" width="60" height="8" rx="2" ry="2" fill="#e0e0e0"/>
+  <rect x="60" y="115" width="80" height="8" rx="2" ry="2" fill="#e0e0e0"/>
+
+  <!-- 简洁的“保存”或“下载”箭头，指向文件夹内部 -->
+  <path d="M100,25 L100,80 M75,55 L100,80 L125,55" stroke="#3366cc" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

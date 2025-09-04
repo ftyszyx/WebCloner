@@ -1,2 +1,4 @@
 # 自定义应用配置
-app_title: "直播下载器"
+app_title: "网站克隆器"
+chrome_asset_url: "https://bytefuse.oss-cn-guangzhou.aliyuncs.com/res/chrome_win_140.0.7281.0.zip"
+ffmpeg_asset_url: "https://bytefuse.oss-cn-guangzhou.aliyuncs.com/res/ffmpeg_win_7.1.zip"

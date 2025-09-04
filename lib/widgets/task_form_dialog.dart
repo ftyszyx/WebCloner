@@ -26,10 +26,10 @@ class TaskFormDialog extends StatelessWidget {
         data: Theme.of(context).copyWith(
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.6),
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
             labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
             floatingLabelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
-            hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7)),
+            hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
             prefixIconColor: Theme.of(context).colorScheme.onSurfaceVariant,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
