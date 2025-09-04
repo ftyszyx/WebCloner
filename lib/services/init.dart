@@ -11,10 +11,10 @@ import 'package:web_cloner/modules/core/event.dart';
 class ServiceManager {
   static Future<void> init() async {
     await Get.put(AppConfigService()).init();
+    await logger.initialize();
     await Get.put(ResourceService()).init();
     await Get.put(AccountService()).init();
     await Get.put(TaskService()).init();
-    await logger.initialize();
     await Get.put(WebCloneService()).init();
     WebCloneService.instance.startLoop();
   }
