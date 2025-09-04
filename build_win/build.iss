@@ -39,7 +39,8 @@ SolidCompression=yes
 WizardStyle=modern
 
 [Languages]
-Name: "ChineseSimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+Name: "ChineseSimplified"; MessagesFile: "ChineseSimplified.isl"
+; Name: "ChineseSimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 ; Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
