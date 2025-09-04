@@ -68,7 +68,7 @@ class ResourceService extends GetxService {
   Future _unzip(String zipPath, String outDir) async {
     final bytes = await File(zipPath).readAsBytes();
     final archive = ZipDecoder().decodeBytes(bytes);
-    extractArchiveToDisk(archive, outDir);
+    await extractArchiveToDisk(archive, outDir);
   }
 
   Future<bool> _checkChromeDir() async {
