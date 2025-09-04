@@ -21,8 +21,8 @@ class TaskAdapter extends TypeAdapter<Task> {
       name: fields[1] as String,
       url: fields[10] as String,
       domainList: (fields[12] as List).cast<String>(),
-      urlPattern: fields[11] as String?,
-      captureUrlPattern: fields[13] as String?,
+      urlPatterns: (fields[11] as List?)?.cast<String>(),
+      captureUrlPatterns: (fields[13] as List?)?.cast<String>(),
       ignoreUrlPatterns: (fields[14] as List?)?.cast<String>(),
       status: fields[20] as TaskStatus,
       createdAt: fields[30] as DateTime,
@@ -50,11 +50,11 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..writeByte(10)
       ..write(obj.url)
       ..writeByte(11)
-      ..write(obj.urlPattern)
+      ..write(obj.urlPatterns)
       ..writeByte(12)
       ..write(obj.domainList)
       ..writeByte(13)
-      ..write(obj.captureUrlPattern)
+      ..write(obj.captureUrlPatterns)
       ..writeByte(14)
       ..write(obj.ignoreUrlPatterns)
       ..writeByte(20)

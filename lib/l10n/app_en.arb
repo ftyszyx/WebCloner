@@ -52,5 +52,8 @@
   "maxConcurrentTasksHint": "Leave empty for default",
   "maxPagesHint": "Leave empty for default",
   "logs": "Logs",
-  "none": "None"
+  "none": "None",
+  "deleteTask": "Delete Task",
+  "areYouSureYouWantToDelete": "Are you sure you want to delete \"{name}\"?",
+  "deleteAccount": "Delete Account"
 }

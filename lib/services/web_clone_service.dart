@@ -137,10 +137,6 @@ class WebCloneService {
       if (validWebsList.isEmpty) {
         addNewUrl(task.url);
       }
-      final int maxConcurrent =
-          (task.maxTaskNum != null && task.maxTaskNum! > 0)
-          ? task.maxTaskNum!
-          : 2;
       final Set<Future<void>> active = <Future<void>>{};
 
       bool hasCapacity() {
@@ -174,7 +170,7 @@ class WebCloneService {
 
       while ((needVisitWebInfos.isNotEmpty && hasCapacity()) ||
           active.isNotEmpty) {
-        while (active.length < maxConcurrent &&
+        while (active.length < task.maxConcurrent &&
             needVisitWebInfos.isNotEmpty &&
             hasCapacity() &&
             task.status != TaskStatus.paused) {

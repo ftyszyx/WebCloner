@@ -52,21 +52,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountPageTitle => 'Account Management';
 
   @override
+  String get accountName => 'Account Name';
+
+  @override
   String totalAccounts(Object count) {
     return 'Total Accounts: $count';
   }
 
   @override
   String get addAccount => 'Add Account';
-
-  @override
-  String get editAccount => 'Edit Account';
-
-  @override
-  String get accountName => 'Account Name';
-
-  @override
-  String get accountNameRequired => 'Please enter account name';
 
   @override
   String get noAccounts => 'No accounts found';
@@ -99,9 +93,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createTask => 'Create Task';
-
-  @override
-  String get editTask => 'Edit Task';
 
   @override
   String get noTasks => 'No tasks found';
@@ -141,11 +132,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountForCookies => 'Account (for cookies)';
 
   @override
-  String progress(Object percent, Object total, Object visited) {
-    return 'Progress: $visited/$total ($percent%)';
-  }
-
-  @override
   String get cancel => 'Cancel';
 
   @override
@@ -177,7 +163,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maxPagesHint => 'Leave empty for default';
 
   @override
+  String progress(Object percent, Object total, Object visited) {
+    return 'Progress: $visited/$total ($percent%)';
+  }
+
+  @override
+  String get editAccount => 'Edit Account';
+
+  @override
+  String get deleteTask => 'Delete Task';
+
+  @override
+  String areYouSureYouWantToDelete(Object name) {
+    return 'Are you sure you want to delete \"$name\"?';
+  }
+
+  @override
+  String get accountNameRequired => 'Please enter account name';
+
+  @override
+  String get editTask => 'Edit Task';
+
+  @override
+  String get deleteAccount => 'Delete Account';
+
+  @override
   String get logs => 'Logs';
+
+  @override
+  String get loginProcess => '登录过程';
+
+  @override
+  String get loginProcessHint => '一个浏览器窗口已经打开。请完成登录过程，然后点击“保存”捕获Cookies。';
+
+  @override
+  String get saveCookies => '保存Cookies';
 
   @override
   String get none => 'None';

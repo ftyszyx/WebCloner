@@ -5,6 +5,7 @@ import 'package:web_cloner/services/account_service.dart';
 import 'package:web_cloner/services/brower_service.dart';
 import 'package:web_cloner/services/logger.dart';
 import 'package:web_cloner/widgets/account_form_dialog.dart';
+import 'package:web_cloner/l10n/app_localizations.dart';
 
 class AccountController extends GetxController {
   final AccountService _accountService = AccountService.instance;
@@ -38,6 +39,7 @@ class AccountController extends GetxController {
   }
 
   Future<void> login(Account account) async {
+    final l10n = AppLocalizations.of(Get.context!)!;
     BrowserSession? session;
     try {
       session = await BrowerService.instance.runBrowserWithPage(
@@ -47,18 +49,16 @@ class AccountController extends GetxController {
 
       final confirmed = await Get.dialog<bool>(
         AlertDialog(
-          title: const Text('Login Process'),
-          content: const Text(
-            'A browser window has been opened. Please complete the login process, then click "Save" to capture the cookies.',
-          ),
+          title: Text(l10n.loginProcess),
+          content: Text( l10n.loginProcessHint),
           actions: [
             TextButton(
               onPressed: () => Get.back(result: false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () => Get.back(result: true),
-              child: const Text('Save Cookies'),
+              child: Text(l10n.saveCookies),
             ),
           ],
         ),
@@ -85,10 +85,11 @@ class AccountController extends GetxController {
   }
 
   Future<void> deleteAccount(Account account) async {
+    final l10n = AppLocalizations.of(Get.context!)!;
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
-        title: const Text('Delete Account'),
-        content: Text('Are you sure you want to delete "${account.name}"?'),
+        title: Text(l10n.deleteAccount),
+        content: Text(l10n.areYouSureYouWantToDelete(account.name)),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),

@@ -125,3 +125,9 @@ ImageMagick:
 ```
 magick app4.svg -background none  -define icon:auto-resize="256,128,64,48,32,16" app_icon.ico
 ```
+
+### 生成hive adapter
+
+```
+flutter packages pub run build_runner build
+```

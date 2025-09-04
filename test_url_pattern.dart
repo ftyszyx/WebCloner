@@ -7,8 +7,8 @@ void main() {
     name: 'Test Task',
     url: 'https://www.baidu.com/',
     domainList: ['www.baidu.com'],
-    urlPattern: 'https://www.baidu.com/*.html',
-    captureUrlPattern: 'https://www.baidu.com/thread-*.html',
+    urlPatterns: ['https://www.baidu.com/*.html'],
+    captureUrlPatterns: ['https://www.baidu.com/thread-*.html'],
     createdAt: DateTime.now(),
   );
 

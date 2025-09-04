@@ -51,21 +51,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accountPageTitle => '账号管理';
 
   @override
+  String get accountName => '账号名称';
+
+  @override
   String totalAccounts(Object count) {
     return '账号总数：$count';
   }
 
   @override
   String get addAccount => '新增账号';
-
-  @override
-  String get editAccount => 'Edit Account';
-
-  @override
-  String get accountName => '账号名称';
-
-  @override
-  String get accountNameRequired => 'Please enter account name';
 
   @override
   String get noAccounts => '暂无账号';
@@ -99,9 +93,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get createTask => '创建任务';
 
   @override
-  String get editTask => 'Edit Task';
-
-  @override
   String get noTasks => '暂无任务';
 
   @override
@@ -123,7 +114,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get taskNameRequired => '请输入任务名称';
 
   @override
-  String get urlPattern => 'URL 规则（* 为通配符）';
+  String get urlPattern => '爬取的URL 规则（* 为通配符）';
 
   @override
   String get allowedDomains => '允许的域名';
@@ -136,11 +127,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get accountForCookies => '账号（用于Cookies）';
-
-  @override
-  String progress(Object percent, Object total, Object visited) {
-    return '进度：$visited/$total ($percent%)';
-  }
 
   @override
   String get cancel => '取消';
@@ -170,10 +156,44 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maxConcurrentTasksHint => '留空默认';
 
   @override
-  String get maxPagesHint => '留空默认';
+  String get maxPagesHint => '留空表示不限制';
+
+  @override
+  String progress(Object percent, Object total, Object visited) {
+    return '进度：$visited/$total ($percent%)';
+  }
+
+  @override
+  String get editAccount => '账号修改';
+
+  @override
+  String get deleteTask => '删除任务';
+
+  @override
+  String areYouSureYouWantToDelete(Object name) {
+    return '确定要删除“$name”吗？';
+  }
+
+  @override
+  String get accountNameRequired => '请输入账号名称';
+
+  @override
+  String get editTask => '任务修改';
+
+  @override
+  String get deleteAccount => '删除账号';
 
   @override
   String get logs => '日志';
+
+  @override
+  String get loginProcess => '登录过程';
+
+  @override
+  String get loginProcessHint => '一个浏览器窗口已经打开。请完成登录过程，然后点击“保存”捕获Cookies。';
+
+  @override
+  String get saveCookies => '保存Cookies';
 
   @override
   String get none => '无';

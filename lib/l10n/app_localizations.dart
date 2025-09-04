@@ -100,326 +100,362 @@ abstract class AppLocalizations {
 
   /// No description provided for @appTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Web Cloner'**
+  /// In zh, this message translates to:
+  /// **'网站克隆器'**
   String get appTitle;
 
   /// No description provided for @homeTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Web Cloner'**
+  /// In zh, this message translates to:
+  /// **'网站克隆器'**
   String get homeTitle;
 
   /// No description provided for @homeSubtitle.
   ///
-  /// In en, this message translates to:
-  /// **'Clone websites, capture screenshots, and generate directories'**
+  /// In zh, this message translates to:
+  /// **'克隆网站、截图并生成目录索引'**
   String get homeSubtitle;
 
   /// No description provided for @menuAccount.
   ///
-  /// In en, this message translates to:
-  /// **'Account Management'**
+  /// In zh, this message translates to:
+  /// **'账号管理'**
   String get menuAccount;
 
   /// No description provided for @menuAccountDesc.
   ///
-  /// In en, this message translates to:
-  /// **'Manage your accounts and credentials'**
+  /// In zh, this message translates to:
+  /// **'管理你的账号和凭据'**
   String get menuAccountDesc;
 
   /// No description provided for @menuTask.
   ///
-  /// In en, this message translates to:
-  /// **'Task Management'**
+  /// In zh, this message translates to:
+  /// **'任务管理'**
   String get menuTask;
 
   /// No description provided for @menuTaskDesc.
   ///
-  /// In en, this message translates to:
-  /// **'Create and manage cloning tasks'**
+  /// In zh, this message translates to:
+  /// **'创建和管理克隆任务'**
   String get menuTaskDesc;
 
   /// No description provided for @settingsTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Settings'**
+  /// In zh, this message translates to:
+  /// **'设置'**
   String get settingsTitle;
 
   /// No description provided for @language.
   ///
-  /// In en, this message translates to:
-  /// **'Language'**
+  /// In zh, this message translates to:
+  /// **'语言'**
   String get language;
 
   /// No description provided for @outputDir.
   ///
-  /// In en, this message translates to:
-  /// **'Output Directory'**
+  /// In zh, this message translates to:
+  /// **'输出目录'**
   String get outputDir;
 
   /// No description provided for @chooseDir.
   ///
-  /// In en, this message translates to:
-  /// **'Choose directory'**
+  /// In zh, this message translates to:
+  /// **'选择目录'**
   String get chooseDir;
 
   /// No description provided for @saved.
   ///
-  /// In en, this message translates to:
-  /// **'Saved'**
+  /// In zh, this message translates to:
+  /// **'已保存'**
   String get saved;
 
   /// No description provided for @outputDirUpdated.
   ///
-  /// In en, this message translates to:
-  /// **'Output directory updated'**
+  /// In zh, this message translates to:
+  /// **'输出目录已更新'**
   String get outputDirUpdated;
 
   /// No description provided for @accountPageTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Account Management'**
+  /// In zh, this message translates to:
+  /// **'账号管理'**
   String get accountPageTitle;
+
+  /// No description provided for @accountName.
+  ///
+  /// In zh, this message translates to:
+  /// **'账号名称'**
+  String get accountName;
 
   /// No description provided for @totalAccounts.
   ///
-  /// In en, this message translates to:
-  /// **'Total Accounts: {count}'**
+  /// In zh, this message translates to:
+  /// **'账号总数：{count}'**
   String totalAccounts(Object count);
 
   /// No description provided for @addAccount.
   ///
-  /// In en, this message translates to:
-  /// **'Add Account'**
+  /// In zh, this message translates to:
+  /// **'新增账号'**
   String get addAccount;
-
-  /// No description provided for @editAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Account'**
-  String get editAccount;
-
-  /// No description provided for @accountName.
-  ///
-  /// In en, this message translates to:
-  /// **'Account Name'**
-  String get accountName;
-
-  /// No description provided for @accountNameRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter account name'**
-  String get accountNameRequired;
 
   /// No description provided for @noAccounts.
   ///
-  /// In en, this message translates to:
-  /// **'No accounts found'**
+  /// In zh, this message translates to:
+  /// **'暂无账号'**
   String get noAccounts;
 
   /// No description provided for @addAccountHint.
   ///
-  /// In en, this message translates to:
-  /// **'Click \"Add Account\" to create your first account'**
+  /// In zh, this message translates to:
+  /// **'点击“新增账号”创建你的第一个账号'**
   String get addAccountHint;
 
   /// No description provided for @urlLabel.
   ///
-  /// In en, this message translates to:
-  /// **'URL: {url}'**
+  /// In zh, this message translates to:
+  /// **'地址：{url}'**
   String urlLabel(Object url);
 
   /// No description provided for @loggedIn.
   ///
-  /// In en, this message translates to:
-  /// **'Logged In'**
+  /// In zh, this message translates to:
+  /// **'已登录'**
   String get loggedIn;
 
   /// No description provided for @notLoggedIn.
   ///
-  /// In en, this message translates to:
-  /// **'Not Logged In'**
+  /// In zh, this message translates to:
+  /// **'未登录'**
   String get notLoggedIn;
 
   /// No description provided for @loginAndSaveCookies.
   ///
-  /// In en, this message translates to:
-  /// **'Login and save cookies'**
+  /// In zh, this message translates to:
+  /// **'登录并保存Cookies'**
   String get loginAndSaveCookies;
 
   /// No description provided for @taskPageTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Task Management'**
+  /// In zh, this message translates to:
+  /// **'任务管理'**
   String get taskPageTitle;
 
   /// No description provided for @totalTasks.
   ///
-  /// In en, this message translates to:
-  /// **'Total Tasks: {count}'**
+  /// In zh, this message translates to:
+  /// **'任务总数：{count}'**
   String totalTasks(Object count);
 
   /// No description provided for @createTask.
   ///
-  /// In en, this message translates to:
-  /// **'Create Task'**
+  /// In zh, this message translates to:
+  /// **'创建任务'**
   String get createTask;
-
-  /// No description provided for @editTask.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Task'**
-  String get editTask;
 
   /// No description provided for @noTasks.
   ///
-  /// In en, this message translates to:
-  /// **'No tasks found'**
+  /// In zh, this message translates to:
+  /// **'暂无任务'**
   String get noTasks;
 
   /// No description provided for @createTaskHint.
   ///
-  /// In en, this message translates to:
-  /// **'Click \"Create Task\" to start your first cloning task'**
+  /// In zh, this message translates to:
+  /// **'点击“创建任务”开始你的第一个克隆任务'**
   String get createTaskHint;
 
   /// No description provided for @taskName.
   ///
-  /// In en, this message translates to:
-  /// **'Task Name'**
+  /// In zh, this message translates to:
+  /// **'任务名称'**
   String get taskName;
 
   /// No description provided for @websiteUrl.
   ///
-  /// In en, this message translates to:
-  /// **'Website URL'**
+  /// In zh, this message translates to:
+  /// **'网站地址'**
   String get websiteUrl;
 
   /// No description provided for @urlInvalid.
   ///
-  /// In en, this message translates to:
-  /// **'Please enter a valid URL'**
+  /// In zh, this message translates to:
+  /// **'请输入合法的网址'**
   String get urlInvalid;
 
   /// No description provided for @urlRequired.
   ///
-  /// In en, this message translates to:
-  /// **'Please enter website URL'**
+  /// In zh, this message translates to:
+  /// **'请输入网站地址'**
   String get urlRequired;
 
   /// No description provided for @taskNameRequired.
   ///
-  /// In en, this message translates to:
-  /// **'Please enter task name'**
+  /// In zh, this message translates to:
+  /// **'请输入任务名称'**
   String get taskNameRequired;
 
   /// No description provided for @urlPattern.
   ///
-  /// In en, this message translates to:
-  /// **'URL Pattern (use * as wildcard)'**
+  /// In zh, this message translates to:
+  /// **'爬取的URL 规则（* 为通配符）'**
   String get urlPattern;
 
   /// No description provided for @allowedDomains.
   ///
-  /// In en, this message translates to:
-  /// **'Allowed Domains'**
+  /// In zh, this message translates to:
+  /// **'允许的域名'**
   String get allowedDomains;
 
   /// No description provided for @addDomainHint.
   ///
-  /// In en, this message translates to:
-  /// **'Add a domain and press Enter'**
+  /// In zh, this message translates to:
+  /// **'输入域名后回车添加'**
   String get addDomainHint;
 
   /// No description provided for @maxPages.
   ///
-  /// In en, this message translates to:
-  /// **'Max Pages'**
+  /// In zh, this message translates to:
+  /// **'最大页面数'**
   String get maxPages;
 
   /// No description provided for @accountForCookies.
   ///
-  /// In en, this message translates to:
-  /// **'Account (for cookies)'**
+  /// In zh, this message translates to:
+  /// **'账号（用于Cookies）'**
   String get accountForCookies;
-
-  /// No description provided for @progress.
-  ///
-  /// In en, this message translates to:
-  /// **'Progress: {visited}/{total} ({percent}%)'**
-  String progress(Object percent, Object total, Object visited);
 
   /// No description provided for @cancel.
   ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
+  /// In zh, this message translates to:
+  /// **'取消'**
   String get cancel;
 
   /// No description provided for @create.
   ///
-  /// In en, this message translates to:
-  /// **'Create'**
+  /// In zh, this message translates to:
+  /// **'创建'**
   String get create;
 
   /// No description provided for @save.
   ///
-  /// In en, this message translates to:
-  /// **'Save'**
+  /// In zh, this message translates to:
+  /// **'保存'**
   String get save;
 
   /// No description provided for @captureUrlPattern.
   ///
-  /// In en, this message translates to:
-  /// **'Capture URL Pattern (use * as wildcard)'**
+  /// In zh, this message translates to:
+  /// **'截图URL规则（* 为通配符）'**
   String get captureUrlPattern;
 
   /// No description provided for @captureUrlPatternHint.
   ///
-  /// In en, this message translates to:
-  /// **'e.g., *.html or leave empty to capture all'**
+  /// In zh, this message translates to:
+  /// **'例如：*.html 或留空捕获所有'**
   String get captureUrlPatternHint;
 
   /// No description provided for @ignoreUrlPatterns.
   ///
-  /// In en, this message translates to:
-  /// **'Ignore URL Patterns'**
+  /// In zh, this message translates to:
+  /// **'忽略的URL规则(*为通配符)'**
   String get ignoreUrlPatterns;
 
   /// No description provided for @addPatternHint.
   ///
-  /// In en, this message translates to:
-  /// **'Add a pattern and press Enter'**
+  /// In zh, this message translates to:
+  /// **'输入规则后回车添加'**
   String get addPatternHint;
 
   /// No description provided for @maxConcurrentTasks.
   ///
-  /// In en, this message translates to:
-  /// **'Max Concurrent Tasks'**
+  /// In zh, this message translates to:
+  /// **'最大并发任务数'**
   String get maxConcurrentTasks;
 
   /// No description provided for @maxConcurrentTasksHint.
   ///
-  /// In en, this message translates to:
-  /// **'Leave empty for default'**
+  /// In zh, this message translates to:
+  /// **'留空默认'**
   String get maxConcurrentTasksHint;
 
   /// No description provided for @maxPagesHint.
   ///
-  /// In en, this message translates to:
-  /// **'Leave empty for default'**
+  /// In zh, this message translates to:
+  /// **'留空表示不限制'**
   String get maxPagesHint;
+
+  /// No description provided for @progress.
+  ///
+  /// In zh, this message translates to:
+  /// **'进度：{visited}/{total} ({percent}%)'**
+  String progress(Object percent, Object total, Object visited);
+
+  /// No description provided for @editAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'账号修改'**
+  String get editAccount;
+
+  /// No description provided for @deleteTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除任务'**
+  String get deleteTask;
+
+  /// No description provided for @areYouSureYouWantToDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除“{name}”吗？'**
+  String areYouSureYouWantToDelete(Object name);
+
+  /// No description provided for @accountNameRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入账号名称'**
+  String get accountNameRequired;
+
+  /// No description provided for @editTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'任务修改'**
+  String get editTask;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除账号'**
+  String get deleteAccount;
 
   /// No description provided for @logs.
   ///
-  /// In en, this message translates to:
-  /// **'Logs'**
+  /// In zh, this message translates to:
+  /// **'日志'**
   String get logs;
+
+  /// No description provided for @loginProcess.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录过程'**
+  String get loginProcess;
+
+  /// No description provided for @loginProcessHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一个浏览器窗口已经打开。请完成登录过程，然后点击“保存”捕获Cookies。'**
+  String get loginProcessHint;
+
+  /// No description provided for @saveCookies.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存Cookies'**
+  String get saveCookies;
 
   /// No description provided for @none.
   ///
-  /// In en, this message translates to:
-  /// **'None'**
+  /// In zh, this message translates to:
+  /// **'无'**
   String get none;
 }
 

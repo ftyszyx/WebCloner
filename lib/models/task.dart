@@ -26,16 +26,16 @@ class Task extends HiveObject {
   @HiveField(10)
   String url;
 
-  //可以用正则表达式过滤url
+  //可以用正则表达式过滤url（支持多个规则）
   @HiveField(11)
-  String? urlPattern;
+  List<String>? urlPatterns;
 
   //允许的域名列表
   @HiveField(12)
   List<String> domainList;
 
   @HiveField(13)
-  String? captureUrlPattern;
+  List<String>? captureUrlPatterns;
 
   @HiveField(14)
   List<String>? ignoreUrlPatterns;
@@ -81,8 +81,8 @@ class Task extends HiveObject {
     required this.name,
     required this.url,
     required this.domainList,
-    this.urlPattern,
-    this.captureUrlPattern,
+    this.urlPatterns,
+    this.captureUrlPatterns,
     this.ignoreUrlPatterns,
     this.status = TaskStatus.pending,
     required this.createdAt,
@@ -109,7 +109,7 @@ class Task extends HiveObject {
       'id': id,
       'name': name,
       'url': url,
-      'urlPattern': urlPattern,
+      'urlPattern': urlPatterns,
       'domainList': domainList,
       'status': status.toString(),
       'createdAt': createdAt.toIso8601String(),
@@ -122,7 +122,7 @@ class Task extends HiveObject {
       'maxPages': maxPages,
       'accountId': accountId,
       'captureNum': captureNum,
-      'captureUrlPattern': captureUrlPattern,
+      'captureUrlPattern': captureUrlPatterns,
       'ignoreUrlPattern': ignoreUrlPatterns?.join(','),
     };
   }
@@ -140,9 +140,8 @@ class Task extends HiveObject {
     return _allowedDomains!;
   }
 
-  String? _urlPatternRegex;
-
-  String? _captureUrlPatternRegex;
+  List<String>? _urlPatternRegex;
+  List<String>? _captureUrlPatternRegex;
 
   //将通配符转换为正则表达式
   String _wildcardToRegex(String pattern) {
@@ -152,21 +151,24 @@ class Task extends HiveObject {
   }
 
   bool isUrlValid(String url) {
-    if (urlPattern == null) return true;
-    _urlPatternRegex ??= _wildcardToRegex(urlPattern!);
-    final regex = RegExp(_urlPatternRegex!);
-    final res = regex.hasMatch(url);
-    // if(res==false){
-    //   print('urlPattern not match: $url $_urlPatternRegex');
-    // }
-    return res;
+    if (urlPatterns == null || urlPatterns!.isEmpty) return true;
+    _urlPatternRegex ??= urlPatterns!.map((e) => _wildcardToRegex(e)).toList();
+    for (final regexStr in _urlPatternRegex!) {
+      final regex = RegExp(regexStr);
+      if (regex.hasMatch(url)) return true;
+    }
+    return false;
   }
 
   bool isUrlNeedCapture(String url) {
-    if (captureUrlPattern == null) return true;
-    _captureUrlPatternRegex ??= _wildcardToRegex(captureUrlPattern!);
-    final regex = RegExp(_captureUrlPatternRegex!);
-    return regex.hasMatch(url);
+    if (captureUrlPatterns == null || captureUrlPatterns!.isEmpty) return true;
+    _captureUrlPatternRegex ??=
+        captureUrlPatterns!.map((e) => _wildcardToRegex(e)).toList();
+    for (final regexStr in _captureUrlPatternRegex!) {
+      final regex = RegExp(regexStr);
+      if (regex.hasMatch(url)) return true;
+    }
+    return false;
   }
 
 
@@ -181,5 +183,12 @@ class Task extends HiveObject {
       }
     }
     return false;
+  }
+
+  int get maxConcurrent {
+    if (maxTaskNum != null && maxTaskNum! > 0) {
+      return maxTaskNum!;
+    }
+    return 1;
   }
 }

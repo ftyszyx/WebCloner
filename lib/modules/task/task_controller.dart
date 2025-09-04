@@ -6,6 +6,7 @@ import 'package:web_cloner/models/task.dart';
 import 'package:web_cloner/services/task_service.dart';
 import 'package:web_cloner/services/web_clone_service.dart';
 import 'package:web_cloner/widgets/task_form_dialog.dart';
+import 'package:web_cloner/l10n/app_localizations.dart';
 
 class TaskController extends GetxController {
   final _taskService = TaskService.instance;
@@ -36,10 +37,11 @@ class TaskController extends GetxController {
   }
 
   Future<void> deleteTask(Task task) async {
+    final l10n = AppLocalizations.of(Get.context!)!;
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
-        title: const Text('Delete Task'),
-        content: Text('Are you sure you want to delete "${task.name}"?'),
+        title: Text(l10n.deleteTask),
+        content: Text(l10n.areYouSureYouWantToDelete(task.name)),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),

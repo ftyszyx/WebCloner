@@ -131,8 +131,7 @@ class BrowerService {
   Future<BrowserSession> runBrowser({bool forceShowBrowser = false}) async {
     try {
       final String chromiumPath = path.join(
-        AppConfigService.instance.appDataPath,
-        'chrome-win',
+        AppConfigService.instance.chromeDir,
         'chrome.exe',
       );
       if (!await File(chromiumPath).exists()) {

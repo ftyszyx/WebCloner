@@ -57,11 +57,12 @@ class TaskFormDialog extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: controller.nameController,
                     decoration: InputDecoration(
                       labelText: l10n.taskName,
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                      floatingLabelBehavior: FloatingLabelBehavior.auto,
                       prefixIcon: const Icon(Icons.label_outline),
                       filled: true,
                       fillColor:
@@ -107,38 +108,101 @@ class TaskFormDialog extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: controller.urlPatternController,
-                    decoration: InputDecoration(
-                      labelText: l10n.urlPattern,
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      prefixIcon: const Icon(Icons.pattern),
-                      filled: true,
-                      fillColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      hintText: 'e.g., /threads/*',
-                      helperText: l10n.maxPagesHint,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.pattern, size: 18, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 6),
+                            Text(l10n.urlPattern, style: Theme.of(context).textTheme.labelLarge),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Obx(
+                          () => Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: controller.urlPatterns
+                                .map(
+                                  (pattern) => Chip(
+                                    label: Text(pattern),
+                                    deleteIcon: const Icon(Icons.close, size: 16),
+                                    onDeleted: () => controller.removeUrlPattern(pattern),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                        TextFormField(
+                          controller: controller.urlPatternInputController,
+                          decoration: InputDecoration(
+                            hintText: l10n.addPatternHint,
+                            border: InputBorder.none,
+                            suffixIcon: IconButton(
+                              tooltip: l10n.addPatternHint,
+                              icon: const Icon(Icons.add),
+                              onPressed: () => controller.addUrlPattern(),
+                            ),
+                          ),
+                          onFieldSubmitted: (value) => controller.addUrlPattern(),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: controller.captureUrlPatternController,
-                    decoration: InputDecoration(
-                      labelText: l10n.captureUrlPattern,
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      prefixIcon: const Icon(Icons.camera_alt),
-                      filled: true,
-                      fillColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      hintText: l10n.captureUrlPatternHint,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.camera_alt, size: 18, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 6),
+                            Text(l10n.captureUrlPattern, style: Theme.of(context).textTheme.labelLarge),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Obx(
+                          () => Wrap(
+                            spacing: 6.0,
+                            runSpacing: 6.0,
+                            children: controller.captureUrlPatterns
+                                .map(
+                                  (pattern) => Chip(
+                                    label: Text(pattern),
+                                    deleteIcon: const Icon(Icons.close, size: 16),
+                                    onDeleted: () => controller.removeCaptureUrlPattern(pattern),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                        TextFormField(
+                          controller: controller.captureUrlPatternInputController,
+                          decoration: InputDecoration(
+                            hintText: l10n.captureUrlPatternHint,
+                            border: InputBorder.none,
+                            suffixIcon: IconButton(
+                              tooltip: l10n.captureUrlPatternHint,
+                              icon: const Icon(Icons.add),
+                              onPressed: () => controller.addCaptureUrlPattern(),
+                            ),
+                          ),
+                          onFieldSubmitted: (value) => controller.addCaptureUrlPattern(),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -253,7 +317,7 @@ class TaskFormDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
                       ),
-                      hintText: '0 for unlimited',
+                      hintText: l10n.maxPagesHint,
                       helperText: l10n.maxPagesHint,
                     ),
                     keyboardType: TextInputType.number,
@@ -338,8 +402,8 @@ class _TaskFormDialogController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final urlController = TextEditingController();
-  final urlPatternController = TextEditingController();
-  final captureUrlPatternController = TextEditingController();
+  final urlPatternInputController = TextEditingController();
+  final captureUrlPatternInputController = TextEditingController();
   final domainInputController = TextEditingController();
   final ignoreUrlPatternInputController = TextEditingController();
   final maxPagesController = TextEditingController();
@@ -347,6 +411,8 @@ class _TaskFormDialogController extends GetxController {
 
   final domainList = <String>[].obs;
   final ignoreUrlPatterns = <String>[].obs;
+  final urlPatterns = <String>[].obs;
+  final captureUrlPatterns = <String>[].obs;
   final accounts = <Account>[].obs;
   final selectedAccountId = Rx<String?>(null);
 
@@ -357,8 +423,8 @@ class _TaskFormDialogController extends GetxController {
     if (task != null) {
       nameController.text = task!.name;
       urlController.text = task!.url;
-      urlPatternController.text = task!.urlPattern ?? '';
-      captureUrlPatternController.text = task!.captureUrlPattern ?? '';
+      urlPatterns.assignAll(task!.urlPatterns ?? const []);
+      captureUrlPatterns.assignAll(task!.captureUrlPatterns ?? const []);
       domainList.assignAll(task!.domainList);
       if (task!.ignoreUrlPatterns != null) {
         ignoreUrlPatterns.assignAll(task!.ignoreUrlPatterns!);
@@ -373,8 +439,8 @@ class _TaskFormDialogController extends GetxController {
   void onClose() {
     nameController.dispose();
     urlController.dispose();
-    urlPatternController.dispose();
-    captureUrlPatternController.dispose();
+    urlPatternInputController.dispose();
+    captureUrlPatternInputController.dispose();
     domainInputController.dispose();
     ignoreUrlPatternInputController.dispose();
     maxPagesController.dispose();
@@ -410,14 +476,38 @@ class _TaskFormDialogController extends GetxController {
     ignoreUrlPatterns.remove(pattern);
   }
 
+  void addUrlPattern() {
+    final pattern = urlPatternInputController.text.trim();
+    if (pattern.isNotEmpty && !urlPatterns.contains(pattern)) {
+      urlPatterns.add(pattern);
+      urlPatternInputController.clear();
+    }
+  }
+
+  void removeUrlPattern(String pattern) {
+    urlPatterns.remove(pattern);
+  }
+
+  void addCaptureUrlPattern() {
+    final pattern = captureUrlPatternInputController.text.trim();
+    if (pattern.isNotEmpty && !captureUrlPatterns.contains(pattern)) {
+      captureUrlPatterns.add(pattern);
+      captureUrlPatternInputController.clear();
+    }
+  }
+
+  void removeCaptureUrlPattern(String pattern) {
+    captureUrlPatterns.remove(pattern);
+  }
+
   void saveTask() {
     if (formKey.currentState!.validate()) {
       final newTask = Task(
         id: task?.id ?? const Uuid().v4(),
         name: nameController.text,
         url: urlController.text,
-        urlPattern: urlPatternController.text,
-        captureUrlPattern: captureUrlPatternController.text,
+        urlPatterns: urlPatterns.toList().isEmpty ? null : urlPatterns.toList(),
+        captureUrlPatterns: captureUrlPatterns.toList().isEmpty ? null : captureUrlPatterns.toList(),
         domainList: domainList.toList(),
         ignoreUrlPatterns: ignoreUrlPatterns.toList(),
         createdAt: task?.createdAt ?? DateTime.now(),
