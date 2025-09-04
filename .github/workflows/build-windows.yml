@@ -1,0 +1,60 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.2'
+          channel: stable
+
+      - name: Flutter info
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Windows (release)
+        run: flutter build windows --release
+
+      - name: Install Inno Setup
+        run: choco install innosetup --yes
+
+      - name: Build Installer (Inno Setup)
+        run: '"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe" build_win\\build.iss'
+
+      - name: List output
+        run: dir output
+
+      - name: Upload artifact (installer exe)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: output/*.exe
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            output/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
