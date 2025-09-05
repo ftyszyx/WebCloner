@@ -105,6 +105,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get websiteUrl => '网站地址';
 
   @override
+  String get scrapMainUrl => '请输入爬取入口URL';
+
+  @override
   String get urlInvalid => '请输入合法的网址';
 
   @override

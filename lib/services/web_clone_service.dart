@@ -10,7 +10,7 @@ import 'package:web_cloner/services/logger.dart';
 import 'package:web_cloner/services/brower_service.dart';
 import 'package:web_cloner/services/account_service.dart';
 import 'package:web_cloner/services/task_service.dart';
-import 'package:puppeteer/puppeteer.dart';
+import 'package:puppeteer/puppeteer.dart' as puppeteer;
 import 'package:puppeteer/protocol/network.dart' as puppeteer_network;
 
 class WebInfo {
@@ -67,161 +67,145 @@ class WebCloneService {
   }
 
   Future<void> cloneWebsite(Task task) async {
-    BrowserSession? session;
-    late List<WebInfo> validWebsList;
-    final Queue<WebInfo> needVisitWebInfos = Queue();
-    final Map<String, WebInfo> validWebDic = {};
-    int visitedPages = 0;
-    int capturedPages = 0;
+    _CloneContext? ctx;
     try {
-      TaskService.instance.updateTaskStatus(task.id, TaskStatus.running);
-      logger.info(
-        'Starting website clone for task: ${task.name} url: ${task.url}',
-      );
-      // 创建任务特定的输出目录
-      final outputPath = await _createTaskOutputDir(task);
-      validWebsList = await _getTaskHistory(task);
-      validWebsList.removeWhere((x) => _checkUrlIsValid(x.url, task) == false);
-      //map to list
-      for (var x in validWebsList) {
-        validWebDic[x.url] = x;
-        if (x.isCaptured) {
-          capturedPages++;
-        }
-        if (x.visited && x.title.isNotEmpty) {
-          visitedPages++;
-        } else {
-          needVisitWebInfos.add(x);
-        }
-      }
-
-      List<puppeteer_network.Cookie> cookies = [];
-      if (task.accountId != null && task.accountId!.isNotEmpty) {
-        try {
-          final account = await AccountService.instance.getAccountById(
-            task.accountId!,
-          );
-          cookies = account?.cookies ?? [];
-          // logger.info('读取账号Cookies成功: ${jsonEncode(cookies)}');
-        } catch (e) {
-          logger.error('读取账号Cookies失败: $e');
-        }
-      }
-      addNewUrl(String url) {
-        if (validWebDic.containsKey(url)) {
-          return;
-        }
-        if (_checkUrlIsValid(url, task) == false) {
-          return;
-        }
-        final info = WebInfo(
-          url: url,
-          pngPath: _getPngPath(task, url),
-          title: '',
-        );
-        if (File(info.pngPath).existsSync()) {
-          info.isCaptured = true;
-          if (info.title.isNotEmpty) {
-            info.visited = true;
-            visitedPages++;
-          }
-          capturedPages++;
-        } else {
-          needVisitWebInfos.add(info);
-        }
-        validWebsList.add(info);
-        validWebDic[url] = info;
-      }
-
-      session = await BrowerService.instance.runBrowser(forceShowBrowser: true);
-      if (validWebsList.isEmpty) {
-        addNewUrl(task.url);
-      }
-      final Set<Future<void>> active = <Future<void>>{};
-
-      bool hasCapacity() {
-        if (task.maxPages <= 0) return true;
-        return capturedPages < task.maxPages;
-      }
-
-      Future<void> startOne() async {
-        if (needVisitWebInfos.isEmpty) return;
-        final info = needVisitWebInfos.removeFirst();
-        info.visited = true;
-        visitedPages++;
-        final (isOk, errMesg) = await _scrawlSite(
-          session!,
-          info,
-          cookies,
-          addNewUrl,
-          task,
-        );
-        if (isOk) {
-          info.isCaptured = true;
-          capturedPages++;
-        }
-        TaskService.instance.updateTaskProgress(
-          task.id,
-          validWebsList.length,
-          capturedPages,
-          visitedPages,
-        );
-      }
-
-      while ((needVisitWebInfos.isNotEmpty && hasCapacity()) ||
-          active.isNotEmpty) {
-        while (active.length < task.maxConcurrent &&
-            needVisitWebInfos.isNotEmpty &&
-            hasCapacity() &&
-            task.status != TaskStatus.paused) {
-          final f = startOne();
-          active.add(f);
-          f.whenComplete(() {
-            active.remove(f);
-          });
-        }
-        if (task.status == TaskStatus.paused) {
-          break;
-        }
-        if (task.maxPages > 0 && capturedPages >= task.maxPages) {
-          logger.info('超过最大数量: ${task.maxPages}');
-          break;
-        }
-        if (active.isEmpty) {
-          break;
-        }
-        await Future.any(active);
-      }
+      ctx = await _prepareCloneContext(task);
+      await _runMainLoop(ctx);
       logger.info("任务结束");
       task.status = TaskStatus.completed;
       TaskService.instance.completeTask(
         task.id,
-        validWebsList.length,
-        visitedPages,
-        capturedPages,
-        outputPath,
+        ctx.validWebsList.length,
+        ctx.visitedPages,
+        ctx.capturedPages,
+        ctx.outputPath,
       );
     } catch (e, s) {
-      logger.error(
-        'Error cloning website for task: ${task.name}',
-        error: e,
-        stackTrace: s,
-      );
+      logger.error('克隆网站失败: ${task.name}', error: e, stackTrace: s);
       TaskService.instance.failTask(task.id, e.toString());
     } finally {
-      if (validWebsList.isNotEmpty) {
+      if (ctx != null && ctx.validWebsList.isNotEmpty) {
         logger.info("保存数据");
-        validWebsList.sort((a, b) {
+        ctx.validWebsList.sort((a, b) {
           final String pinyinA = PinyinHelper.getPinyinE(a.title);
           final String pinyinB = PinyinHelper.getPinyinE(b.title);
-          // logger.info("pinyinA:${a.title} - $pinyinA, pinyinB: ${b.title} - $pinyinB");
           return pinyinA.compareTo(pinyinB);
         });
-        await _generateIndexHtml(validWebsList, task);
-        await _saveTaskHistory(task, validWebsList);
+        await _generateIndexHtml(ctx.validWebsList, task);
+        await _saveTaskHistory(task, ctx.validWebsList);
       }
-      await session?.close();
+      await ctx?.session.close();
     }
+  }
+
+  Future<_CloneContext> _prepareCloneContext(Task task) async {
+    TaskService.instance.updateTaskStatus(task.id, TaskStatus.running);
+    logger.info('开始克隆网站: ${task.name} url: ${task.url}');
+    final outputPath = await _createTaskOutputDir(task);
+    final validWebsList = await _getTaskHistory(task);
+    validWebsList.removeWhere((x) => _checkUrlIsValid(x.url, task) == false);
+    final needVisitWebInfos = Queue<WebInfo>();
+    final validWebDic = <String, WebInfo>{};
+    int visitedPages = 0;
+    int capturedPages = 0;
+    for (var x in validWebsList) {
+      validWebDic[x.url] = x;
+      if (x.isCaptured) {
+        capturedPages++;
+      }
+      if (x.visited && x.title.isNotEmpty) {
+        visitedPages++;
+      } else {
+        needVisitWebInfos.add(x);
+      }
+    }
+    List<puppeteer_network.Cookie> cookies = [];
+    if (task.accountId != null && task.accountId!.isNotEmpty) {
+      try {
+        final account = await AccountService.instance.getAccountById(
+          task.accountId!,
+        );
+        cookies = account?.cookies ?? [];
+      } catch (e) {
+        logger.error('读取账号Cookies失败: $e');
+      }
+    }
+    final session = await BrowerService.instance.runBrowser(
+      forceShowBrowser: true,
+    );
+    final ctx = _CloneContext(
+      svc: this,
+      task: task,
+      outputPath: outputPath,
+      validWebsList: validWebsList,
+      needVisitWebInfos: needVisitWebInfos,
+      validWebDic: validWebDic,
+      visitedPages: visitedPages,
+      capturedPages: capturedPages,
+      cookies: cookies,
+      session: session,
+    );
+    if (validWebsList.isEmpty) {
+      ctx.addNewUrl(task.url);
+    }
+    return ctx;
+  }
+
+  Future<void> _runMainLoop(_CloneContext ctx) async {
+    final Set<Future<void>> active = <Future<void>>{};
+    bool hasCapacity() {
+      if (ctx.task.maxPages <= 0) return true;
+      return ctx.capturedPages < ctx.task.maxPages;
+    }
+
+    while ((ctx.needVisitWebInfos.isNotEmpty && hasCapacity()) ||
+        active.isNotEmpty) {
+      while (active.length < ctx.task.maxConcurrent &&
+          ctx.needVisitWebInfos.isNotEmpty &&
+          hasCapacity() &&
+          ctx.task.status != TaskStatus.paused) {
+        final f = _startOne(ctx);
+        active.add(f);
+        f.whenComplete(() {
+          active.remove(f);
+        });
+      }
+      if (ctx.task.status == TaskStatus.paused) {
+        break;
+      }
+      if (ctx.task.maxPages > 0 && ctx.capturedPages >= ctx.task.maxPages) {
+        logger.info('超过最大数量: ${ctx.task.maxPages}');
+        break;
+      }
+      if (active.isEmpty) {
+        break;
+      }
+      await Future.any(active);
+    }
+  }
+
+  Future<void> _startOne(_CloneContext ctx) async {
+    if (ctx.needVisitWebInfos.isEmpty) return;
+    final info = ctx.needVisitWebInfos.removeFirst();
+    info.visited = true;
+    ctx.visitedPages++;
+    final (isOk, errMesg) = await _scrawlSite(
+      ctx.session,
+      info,
+      ctx.cookies,
+      ctx.addNewUrl,
+      ctx.task,
+    );
+    if (isOk) {
+      info.isCaptured = true;
+      ctx.capturedPages++;
+    }
+    TaskService.instance.updateTaskProgress(
+      ctx.task.id,
+      ctx.validWebsList.length,
+      ctx.capturedPages,
+      ctx.visitedPages,
+    );
   }
 
   String _getTaskOutputDir(Task task) {
@@ -249,13 +233,50 @@ class WebCloneService {
     return taskDir;
   }
 
-  Future<void> _addAllLinks(PageInfo page, Function(String) onAddNewUrl) async {
-    final links = await page.page.evaluate<List<dynamic>>(
+  Future<void> _addAllLinks(
+    puppeteer.Page page,
+    Function(String) onAddNewUrl,
+  ) async {
+    final links = await page.evaluate<List<dynamic>>(
       '() => Array.from(document.querySelectorAll("a[href]")).filter(a => ["http:", "https:"] .includes(a.protocol)).map(a => a.href)',
     );
     for (var link in links) {
       final url = Uri.parse(link).toString();
       onAddNewUrl(url);
+    }
+  }
+
+  Future<void> _scrollToBottom(puppeteer.Page page) async {
+    logger.info('滚动到页面底部');
+    await page.evaluate('''
+             async () => {
+               const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+               const body = document.body;
+               const html = document.documentElement;
+               const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+               for (let i = 0; i < height; i += 100) {
+                 window.scrollTo(0, i);
+                 await sleep(50);
+               }
+              await sleep(50);
+             }
+           ''');
+  }
+
+  Future<void> _waitPageAllImagesLoaded(puppeteer.Page page, String url) async {
+    try {
+      //wait page all images loaded
+      logger.info('等待页面所有图片加载完成');
+      await page.waitForFunction('''
+   () => {
+     const images = Array.from(document.querySelectorAll('img'));
+     if (images.length === 0) return true;
+     // Check if all images are settled (either loaded successfully or failed)
+     return images.every(img => img.complete);
+   }
+ ''', timeout: const Duration(seconds: 30));
+    } catch (e, s) {
+      logger.error('等待页面所有图片加载完成失败: $url, ', error: e, stackTrace: s);
     }
   }
 
@@ -270,19 +291,20 @@ class WebCloneService {
     logger.info('goto url: ${info.url}');
     final page = await session.waitForNotBusyPage(cookies: cookies);
     try {
-      page.isBusy = true;
+      page.inUse = true;
       await page.goto(
-        url: info.url,
-        wait: Until.domContentLoaded,
+        info.url,
+        wait: puppeteer.Until.domContentLoaded,
         timeout: const Duration(minutes: 10),
       );
+      await _scrollToBottom(page);
       //get title
-      final title = await page.page.title ?? '';
+      final title = await page.title ?? '';
       info.title = title;
       _addAllLinks(page, onAddNewUrl);
       try {
         while (true) {
-          final clicked = await page.page.evaluate<bool>(
+          final clicked = await page.evaluate<bool>(
             r'''(() => {
             function isRealHref(el){if(!el||el.tagName!=='A')return false;const href=(el.getAttribute('href')||'').trim();if(!href)return false;try{const u=new URL(href,document.baseURI);return u.protocol==='http:'||u.protocol==='https:';}catch(e){return false;}}
             const NEXT_EXACT=/^(下一页|下一頁|下页|更多|Next|More|Older|next|more|older)$/i;
@@ -303,8 +325,8 @@ class WebCloneService {
             if(el && !(el.tagName==='A' && isRealHref(el))){el.click();return true;}}return false;})()''',
           );
           if (clicked != true) break;
-          await page.page.waitForNavigation(
-            wait: Until.networkIdle,
+          await page.waitForNavigation(
+            wait: puppeteer.Until.networkIdle,
             timeout: const Duration(seconds: 10),
           );
           await Future.delayed(const Duration(milliseconds: 1000));
@@ -314,41 +336,11 @@ class WebCloneService {
         logger.error('分页查找与点击失败: ${info.url}', error: e, stackTrace: s);
       }
       if (task.isUrlNeedCapture(info.url) && info.isCaptured == false) {
-        try {
-          //wait page all images loaded
-          logger.info('等待页面所有图片加载完成');
-          await page.page.evaluate('''
-             async () => {
-               const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-               const body = document.body;
-               const html = document.documentElement;
-               const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
-               for (let i = 0; i < height; i += 100) {
-                 window.scrollTo(0, i);
-                 await sleep(50);
-               }
-              await sleep(50);
-             }
-           ''');
-
-          await page.page.waitForFunction('''
-   () => {
-     const images = Array.from(document.querySelectorAll('img'));
-     if (images.length === 0) return true;
-     // Check if all images are settled (either loaded successfully or failed)
-     return images.every(img => img.complete);
-   }
- ''', timeout: const Duration(seconds: 30));
-        } catch (e, s) {
-          logger.error(
-            '等待页面所有图片加载完成失败: ${info.url}, ',
-            error: e,
-            stackTrace: s,
-          );
-        }
+        await _scrollToBottom(page);
+        await _waitPageAllImagesLoaded(page, info.url);
         try {
           logger.info('开始截图: ${info.url}');
-          final bytes = await page.page.screenshot(fullPage: true);
+          final bytes = await page.screenshot(fullPage: true);
           final file = File(info.pngPath);
           await file.writeAsBytes(bytes);
           return (true, "");
@@ -360,7 +352,7 @@ class WebCloneService {
         return (false, "url is not need capture");
       }
     } finally {
-      page.isBusy = false;
+      page.inUse = false;
     }
   }
 
@@ -535,5 +527,56 @@ q.addEventListener("input", applyFilter);
       );
       return false;
     }
+  }
+}
+
+class _CloneContext {
+  final WebCloneService svc;
+  final Task task;
+  final String outputPath;
+  final List<WebInfo> validWebsList;
+  final Queue<WebInfo> needVisitWebInfos;
+  final Map<String, WebInfo> validWebDic;
+  int visitedPages;
+  int capturedPages;
+  final List<puppeteer_network.Cookie> cookies;
+  final BrowserSession session;
+
+  _CloneContext({
+    required this.svc,
+    required this.task,
+    required this.outputPath,
+    required this.validWebsList,
+    required this.needVisitWebInfos,
+    required this.validWebDic,
+    required this.visitedPages,
+    required this.capturedPages,
+    required this.cookies,
+    required this.session,
+  });
+
+  void addNewUrl(String url) {
+    //url 去掉#后面的字符
+    url = url.split('#')[0];
+    url = url.replaceAll('#', '');
+    if (validWebDic.containsKey(url)) return;
+    if (svc._checkUrlIsValid(url, task) == false) return;
+    final info = WebInfo(
+      url: url,
+      pngPath: svc._getPngPath(task, url),
+      title: '',
+    );
+    if (File(info.pngPath).existsSync()) {
+      info.isCaptured = true;
+      if (info.title.isNotEmpty) {
+        info.visited = true;
+        visitedPages++;
+      }
+      capturedPages++;
+    } else {
+      needVisitWebInfos.add(info);
+    }
+    validWebsList.add(info);
+    validWebDic[url] = info;
   }
 }

@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'网站地址'**
   String get websiteUrl;
 
+  /// No description provided for @scrapMainUrl.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入爬取入口URL'**
+  String get scrapMainUrl;
+
   /// No description provided for @urlInvalid.
   ///
   /// In zh, this message translates to:

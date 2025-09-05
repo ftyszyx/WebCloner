@@ -99,7 +99,13 @@ class AppConfigService extends GetxService {
   }
 
   String getLocaleStr() {
-    return getValue('locale', 'zh');
+    //get from system
+    final locale = Platform.localeName;
+    var defaultLocale = 'zh';
+    if (locale.contains('zh') == false) {
+      defaultLocale = 'en';
+    }
+    return getValue('locale', defaultLocale);
   }
 
   void setLocale(String locale) {

@@ -108,6 +108,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get websiteUrl => 'Website URL';
 
   @override
+  String get scrapMainUrl =>
+      'Please enter the URL of the entry point for crawling';
+
+  @override
   String get urlInvalid => 'Please enter a valid URL';
 
   @override

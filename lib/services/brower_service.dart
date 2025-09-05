@@ -5,25 +5,9 @@ import 'package:web_cloner/services/logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:puppeteer/protocol/network.dart' as puppeteer_network;
 
-class PageInfo {
-  final puppeteer.Page page;
-  String url = '';
-  bool isBusy;
-  PageInfo({required this.page, this.isBusy = false});
-
-  Future<void> goto({
-    String url = '',
-    Duration? timeout,
-    puppeteer.Until? wait,
-  }) async {
-    this.url = url;
-    await page.goto(url, wait: wait, timeout: timeout);
-  }
-}
-
 class BrowserSession {
   final puppeteer.Browser? browser;
-  final List<PageInfo> pages = [];
+  // final List<PageInfo> pages = [];
   final String? userDataDir;
   bool isClosed = false;
   int maxPage = 10; //最大页面数
@@ -37,17 +21,23 @@ class BrowserSession {
     }
   }
 
-  Future<PageInfo> waitForNotBusyPage({
+  Future<puppeteer.Page> waitForNotBusyPage({
     List<puppeteer_network.Cookie>? cookies,
     Function(puppeteer.Request)? onRequest,
     Function(puppeteer.Response)? onResponse,
   }) async {
-    PageInfo? page;
+    puppeteer.Page? page;
     while (page == null) {
+      final pages = await browser!.pages;
       try {
-        page = pages.firstWhere((element) => !element.isBusy);
-        page.isBusy = true;
-        return page;
+        if (pages.isNotEmpty) {
+          page = pages.firstWhere((element) => !element.inUse);
+          await _setCookies(page, cookies);
+          page.inUse = true;
+          return page;
+        } else {
+          throw Exception('没有找到可用的页面');
+        }
       } catch (e) {
         if (pages.length < maxPage) {
           page = await addpage(
@@ -55,7 +45,7 @@ class BrowserSession {
             onRequest: onRequest,
             onResponse: onResponse,
           );
-          page.isBusy = true;
+          page.inUse = true;
           return page;
         }
       }
@@ -64,7 +54,26 @@ class BrowserSession {
     throw Exception('没有找到可用的页面');
   }
 
-  Future<PageInfo> addpage({
+  Future<void> _setCookies(
+    puppeteer.Page page,
+    List<puppeteer_network.Cookie>? cookies,
+  ) async {
+    if (cookies != null) {
+      await page.setCookies(
+        cookies
+            .map(
+              (e) => puppeteer.CookieParam(
+                name: e.name,
+                value: e.value,
+                domain: e.domain,
+              ),
+            )
+            .toList(),
+      );
+    }
+  }
+
+  Future<puppeteer.Page> addpage({
     List<puppeteer_network.Cookie>? cookies,
     Function(puppeteer.Request)? onRequest,
     Function(puppeteer.Response)? onResponse,
@@ -84,26 +93,19 @@ class BrowserSession {
     await page.setUserAgent(AppConfigService.instance.userAgent);
     // await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1');
     if (cookies != null) {
-      await page.setCookies(
-        cookies
-            .map(
-              (e) => puppeteer.CookieParam(
-                name: e.name,
-                value: e.value,
-                domain: e.domain,
-              ),
-            )
-            .toList(),
-      );
+      await _setCookies(page, cookies);
     }
-
-    final pageInfo = PageInfo(page: page, isBusy: false);
-    pages.add(pageInfo);
-    return pageInfo;
+    return page;
   }
 
-  PageInfo lastPage() {
-    return pages.last;
+  Future<puppeteer.Page?> lastPage() async {
+    final pages = await browser!.pages;
+    if (pages.isNotEmpty) {
+      return pages.last;
+    } else {
+      return null;
+      // throw Exception('没有找到可用的页面');
+    }
   }
 }
 
@@ -179,6 +181,7 @@ class BrowerService {
     required String url,
     List<puppeteer_network.Cookie>? cookies,
     bool forceShowBrowser = false,
+    bool waitOpen = true,
     Function(puppeteer.Request)? onRequest,
     Function(puppeteer.Response)? onResponse,
   }) async {
@@ -188,7 +191,19 @@ class BrowerService {
       onRequest: onRequest,
       onResponse: onResponse,
     );
-    await page.goto(url: url);
+    if (waitOpen) {
+      await page.goto(
+        url,
+        wait: puppeteer.Until.domContentLoaded,
+        timeout: const Duration(seconds: 30),
+      );
+    } else {
+      page.goto(
+        url,
+        wait: puppeteer.Until.domContentLoaded,
+        timeout: const Duration(seconds: 30),
+      );
+    }
     return browserSession;
   }
 }

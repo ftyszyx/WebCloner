@@ -26,26 +26,46 @@ class TaskFormDialog extends StatelessWidget {
         data: Theme.of(context).copyWith(
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-            labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-            floatingLabelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
-            hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+            fillColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+            labelStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            floatingLabelStyle: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            hintStyle: TextStyle(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+            ),
             prefixIconColor: Theme.of(context).colorScheme.onSurfaceVariant,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.error,
+              ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.error, width: 2),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.error,
+                width: 2,
+              ),
             ),
           ),
         ),
@@ -65,8 +85,9 @@ class TaskFormDialog extends StatelessWidget {
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                       prefixIcon: const Icon(Icons.label_outline),
                       filled: true,
-                      fillColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -83,12 +104,13 @@ class TaskFormDialog extends StatelessWidget {
                   TextFormField(
                     controller: controller.urlController,
                     decoration: InputDecoration(
-                      labelText: l10n.websiteUrl,
+                      labelText: l10n.scrapMainUrl,
                       floatingLabelBehavior: FloatingLabelBehavior.always,
                       prefixIcon: const Icon(Icons.link),
                       filled: true,
-                      fillColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -109,7 +131,10 @@ class TaskFormDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(8),
@@ -119,9 +144,16 @@ class TaskFormDialog extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.pattern, size: 18, color: Theme.of(context).colorScheme.primary),
+                            Icon(
+                              Icons.pattern,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                             const SizedBox(width: 6),
-                            Text(l10n.urlPattern, style: Theme.of(context).textTheme.labelLarge),
+                            Text(
+                              l10n.urlPattern,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -133,8 +165,12 @@ class TaskFormDialog extends StatelessWidget {
                                 .map(
                                   (pattern) => Chip(
                                     label: Text(pattern),
-                                    deleteIcon: const Icon(Icons.close, size: 16),
-                                    onDeleted: () => controller.removeUrlPattern(pattern),
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                    ),
+                                    onDeleted: () =>
+                                        controller.removeUrlPattern(pattern),
                                   ),
                                 )
                                 .toList(),
@@ -151,14 +187,18 @@ class TaskFormDialog extends StatelessWidget {
                               onPressed: () => controller.addUrlPattern(),
                             ),
                           ),
-                          onFieldSubmitted: (value) => controller.addUrlPattern(),
+                          onFieldSubmitted: (value) =>
+                              controller.addUrlPattern(),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(8),
@@ -168,9 +208,16 @@ class TaskFormDialog extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.camera_alt, size: 18, color: Theme.of(context).colorScheme.primary),
+                            Icon(
+                              Icons.camera_alt,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                             const SizedBox(width: 6),
-                            Text(l10n.captureUrlPattern, style: Theme.of(context).textTheme.labelLarge),
+                            Text(
+                              l10n.captureUrlPattern,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -182,32 +229,42 @@ class TaskFormDialog extends StatelessWidget {
                                 .map(
                                   (pattern) => Chip(
                                     label: Text(pattern),
-                                    deleteIcon: const Icon(Icons.close, size: 16),
-                                    onDeleted: () => controller.removeCaptureUrlPattern(pattern),
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                    ),
+                                    onDeleted: () => controller
+                                        .removeCaptureUrlPattern(pattern),
                                   ),
                                 )
                                 .toList(),
                           ),
                         ),
                         TextFormField(
-                          controller: controller.captureUrlPatternInputController,
+                          controller:
+                              controller.captureUrlPatternInputController,
                           decoration: InputDecoration(
                             hintText: l10n.captureUrlPatternHint,
                             border: InputBorder.none,
                             suffixIcon: IconButton(
                               tooltip: l10n.captureUrlPatternHint,
                               icon: const Icon(Icons.add),
-                              onPressed: () => controller.addCaptureUrlPattern(),
+                              onPressed: () =>
+                                  controller.addCaptureUrlPattern(),
                             ),
                           ),
-                          onFieldSubmitted: (value) => controller.addCaptureUrlPattern(),
+                          onFieldSubmitted: (value) =>
+                              controller.addCaptureUrlPattern(),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(8),
@@ -217,9 +274,16 @@ class TaskFormDialog extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.rule, size: 18, color: Theme.of(context).colorScheme.primary),
+                            Icon(
+                              Icons.rule,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                             const SizedBox(width: 6),
-                            Text(l10n.ignoreUrlPatterns, style: Theme.of(context).textTheme.labelLarge),
+                            Text(
+                              l10n.ignoreUrlPatterns,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -231,15 +295,20 @@ class TaskFormDialog extends StatelessWidget {
                                 .map(
                                   (pattern) => Chip(
                                     label: Text(pattern),
-                                    deleteIcon: const Icon(Icons.close, size: 16),
-                                    onDeleted: () => controller.removeIgnoreUrlPattern(pattern),
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                    ),
+                                    onDeleted: () => controller
+                                        .removeIgnoreUrlPattern(pattern),
                                   ),
                                 )
                                 .toList(),
                           ),
                         ),
                         TextFormField(
-                          controller: controller.ignoreUrlPatternInputController,
+                          controller:
+                              controller.ignoreUrlPatternInputController,
                           decoration: InputDecoration(
                             hintText: l10n.addPatternHint,
                             border: InputBorder.none,
@@ -249,14 +318,18 @@ class TaskFormDialog extends StatelessWidget {
                               onPressed: () => controller.addIgnoreUrlPattern(),
                             ),
                           ),
-                          onFieldSubmitted: (value) => controller.addIgnoreUrlPattern(),
+                          onFieldSubmitted: (value) =>
+                              controller.addIgnoreUrlPattern(),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(8),
@@ -266,9 +339,16 @@ class TaskFormDialog extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.domain, size: 18, color: Theme.of(context).colorScheme.primary),
+                            Icon(
+                              Icons.domain,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                             const SizedBox(width: 6),
-                            Text(l10n.allowedDomains, style: Theme.of(context).textTheme.labelLarge),
+                            Text(
+                              l10n.allowedDomains,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -280,8 +360,12 @@ class TaskFormDialog extends StatelessWidget {
                                 .map(
                                   (domain) => Chip(
                                     label: Text(domain),
-                                    deleteIcon: const Icon(Icons.close, size: 16),
-                                    onDeleted: () => controller.removeDomain(domain),
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                    ),
+                                    onDeleted: () =>
+                                        controller.removeDomain(domain),
                                   ),
                                 )
                                 .toList(),
@@ -311,8 +395,9 @@ class TaskFormDialog extends StatelessWidget {
                       floatingLabelBehavior: FloatingLabelBehavior.always,
                       prefixIcon: const Icon(Icons.filter_9_plus_outlined),
                       filled: true,
-                      fillColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -330,8 +415,9 @@ class TaskFormDialog extends StatelessWidget {
                       floatingLabelBehavior: FloatingLabelBehavior.always,
                       prefixIcon: const Icon(Icons.sync_alt),
                       filled: true,
-                      fillColor:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       border: const OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide.none,
@@ -343,14 +429,20 @@ class TaskFormDialog extends StatelessWidget {
                   const SizedBox(height: 16),
                   Obx(
                     () => DropdownButtonFormField<String?>(
-                      initialValue: controller.accounts.any((a) => a.id == controller.selectedAccountId.value) ? controller.selectedAccountId.value : null,
+                      initialValue:
+                          controller.accounts.any(
+                            (a) => a.id == controller.selectedAccountId.value,
+                          )
+                          ? controller.selectedAccountId.value
+                          : null,
                       decoration: InputDecoration(
                         labelText: l10n.accountForCookies,
                         floatingLabelBehavior: FloatingLabelBehavior.always,
                         prefixIcon: const Icon(Icons.account_circle_outlined),
                         filled: true,
-                        fillColor:
-                            Theme.of(context).colorScheme.surfaceContainerHighest,
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
@@ -507,7 +599,9 @@ class _TaskFormDialogController extends GetxController {
         name: nameController.text,
         url: urlController.text,
         urlPatterns: urlPatterns.toList().isEmpty ? null : urlPatterns.toList(),
-        captureUrlPatterns: captureUrlPatterns.toList().isEmpty ? null : captureUrlPatterns.toList(),
+        captureUrlPatterns: captureUrlPatterns.toList().isEmpty
+            ? null
+            : captureUrlPatterns.toList(),
         domainList: domainList.toList(),
         ignoreUrlPatterns: ignoreUrlPatterns.toList(),
         createdAt: task?.createdAt ?? DateTime.now(),

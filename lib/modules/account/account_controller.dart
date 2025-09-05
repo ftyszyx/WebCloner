@@ -46,6 +46,7 @@ class AccountController extends GetxController {
       session = await BrowerService.instance.runBrowserWithPage(
         url: account.url,
         forceShowBrowser: true,
+        waitOpen: false,
       );
       logger.info("show save dialog");
 
@@ -69,9 +70,15 @@ class AccountController extends GetxController {
       logger.info('confirmed: $confirmed');
       if (confirmed == true) {
         logger.info('get cookies');
-        final cookies = await session.lastPage().page.cookies();
-        if (cookies.isNotEmpty) {
-          account.cookies = cookies;
+        final pages = await session.browser!.pages;
+        logger.info('pages: ${pages.length}');
+        account.cookies = [];
+        for (var page in pages) {
+          logger.info('add page cookies: ${page.url}');
+          final cookies = await page.cookies();
+          account.cookies?.addAll(cookies);
+        }
+        if (account.cookies!.isNotEmpty) {
           await _accountService.updateAccount(account);
           Get.snackbar(l10n.saved, l10n.cookiesSavedSuccessfully);
         } else {

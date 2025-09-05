@@ -22,7 +22,7 @@ class Task extends HiveObject {
   @HiveField(1)
   String name;
 
-  //base url
+  //main url
   @HiveField(10)
   String url;
 
@@ -95,7 +95,7 @@ class Task extends HiveObject {
     this.maxPages = 0,
     this.captureNum,
     this.accountId,
-    this.maxTaskNum=1,
+    this.maxTaskNum = 1,
   });
 
   double get progress {
@@ -151,6 +151,7 @@ class Task extends HiveObject {
   }
 
   bool isUrlValid(String url) {
+    if (url == this.url) return true;
     if (urlPatterns == null || urlPatterns!.isEmpty) return true;
     _urlPatternRegex ??= urlPatterns!.map((e) => _wildcardToRegex(e)).toList();
     for (final regexStr in _urlPatternRegex!) {
@@ -162,8 +163,9 @@ class Task extends HiveObject {
 
   bool isUrlNeedCapture(String url) {
     if (captureUrlPatterns == null || captureUrlPatterns!.isEmpty) return true;
-    _captureUrlPatternRegex ??=
-        captureUrlPatterns!.map((e) => _wildcardToRegex(e)).toList();
+    _captureUrlPatternRegex ??= captureUrlPatterns!
+        .map((e) => _wildcardToRegex(e))
+        .toList();
     for (final regexStr in _captureUrlPatternRegex!) {
       final regex = RegExp(regexStr);
       if (regex.hasMatch(url)) return true;
@@ -171,11 +173,12 @@ class Task extends HiveObject {
     return false;
   }
 
-
   List<String>? _ignoreUrlPatternRegexs;
   bool isUrlIgnore(String url) {
     if (ignoreUrlPatterns == null) return false;
-    _ignoreUrlPatternRegexs ??= ignoreUrlPatterns!.map((e) => _wildcardToRegex(e)).toList();
+    _ignoreUrlPatternRegexs ??= ignoreUrlPatterns!
+        .map((e) => _wildcardToRegex(e))
+        .toList();
     for (final regex in _ignoreUrlPatternRegexs!) {
       final reg = RegExp(regex);
       if (reg.hasMatch(url)) {
