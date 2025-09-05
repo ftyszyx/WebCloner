@@ -69,7 +69,7 @@ class BrowserSession {
     Function(puppeteer.Request)? onRequest,
     Function(puppeteer.Response)? onResponse,
   }) async {
-    logger.info('添加页面');
+    // logger.info('添加页面');
     final page = await browser!.newPage();
     page.onRequest.listen((request) {
       if (onRequest != null) {

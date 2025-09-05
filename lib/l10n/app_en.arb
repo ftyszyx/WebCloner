@@ -55,5 +55,10 @@
   "none": "None",
   "deleteTask": "Delete Task",
   "areYouSureYouWantToDelete": "Are you sure you want to delete \"{name}\"?",
-  "deleteAccount": "Delete Account"
+  "deleteAccount": "Delete Account",
+  "error": "Error",
+  "failedToOpenBrowserOrSaveCookies": "Failed to open browser or save cookies: {error}",
+  "cookiesSavedSuccessfully": "Cookies saved successfully!",
+  "noCookiesWereCaptured": "No cookies were captured.",
+  "warning": "Warning"
 }

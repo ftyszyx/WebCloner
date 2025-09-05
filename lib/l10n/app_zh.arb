@@ -58,5 +58,11 @@
   "loginProcess": "登录过程",
   "loginProcessHint": "一个浏览器窗口已经打开。请完成登录过程，然后点击“保存”捕获Cookies。",
   "saveCookies": "保存Cookies",
+  "error":"错误",
+  "failedToOpenBrowserOrSaveCookies": "打开浏览器或保存Cookies失败：{error}",
+  "cookiesSavedSuccessfully": "Cookies保存成功！",
+  "noCookiesWereCaptured": "没有捕获到Cookies。",
+  "warning": "警告",
+  "delete": "删除",
   "none": "无"
 }

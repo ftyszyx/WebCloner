@@ -42,15 +42,17 @@ class AccountController extends GetxController {
     final l10n = AppLocalizations.of(Get.context!)!;
     BrowserSession? session;
     try {
+      logger.info('Login to ${account.url}');
       session = await BrowerService.instance.runBrowserWithPage(
         url: account.url,
         forceShowBrowser: true,
       );
+      logger.info("show save dialog");
 
       final confirmed = await Get.dialog<bool>(
         AlertDialog(
           title: Text(l10n.loginProcess),
-          content: Text( l10n.loginProcessHint),
+          content: Text(l10n.loginProcessHint),
           actions: [
             TextButton(
               onPressed: () => Get.back(result: false),
@@ -64,21 +66,30 @@ class AccountController extends GetxController {
         ),
         barrierDismissible: false,
       );
-
+      logger.info('confirmed: $confirmed');
       if (confirmed == true) {
+        logger.info('get cookies');
         final cookies = await session.lastPage().page.cookies();
         if (cookies.isNotEmpty) {
           account.cookies = cookies;
           await _accountService.updateAccount(account);
-          Get.snackbar('Success', 'Cookies saved successfully!');
+          Get.snackbar(l10n.saved, l10n.cookiesSavedSuccessfully);
         } else {
-          Get.snackbar('Warning', 'No cookies were captured.');
+          Get.snackbar(l10n.warning, l10n.noCookiesWereCaptured);
         }
       }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to open browser or save cookies: $e');
-      logger.error('Login failed for account ${account.name}', error: e);
+    } catch (e, s) {
+      Get.snackbar(
+        l10n.error,
+        l10n.failedToOpenBrowserOrSaveCookies(e.toString()),
+      );
+      logger.error(
+        'Login failed for account ${account.name}',
+        error: e,
+        stackTrace: s,
+      );
     } finally {
+      logger.info('finally close session');
       await session?.close();
       loadAccounts();
     }
@@ -93,12 +104,12 @@ class AccountController extends GetxController {
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Get.back(result: true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),

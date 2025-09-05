@@ -200,5 +200,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveCookies => '保存Cookies';
 
   @override
+  String get error => 'Error';
+
+  @override
+  String failedToOpenBrowserOrSaveCookies(Object error) {
+    return 'Failed to open browser or save cookies: $error';
+  }
+
+  @override
+  String get cookiesSavedSuccessfully => 'Cookies saved successfully!';
+
+  @override
+  String get noCookiesWereCaptured => 'No cookies were captured.';
+
+  @override
+  String get warning => 'Warning';
+
+  @override
+  String get delete => '删除';
+
+  @override
   String get none => 'None';
 }

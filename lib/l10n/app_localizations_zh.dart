@@ -196,5 +196,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get saveCookies => '保存Cookies';
 
   @override
+  String get error => '错误';
+
+  @override
+  String failedToOpenBrowserOrSaveCookies(Object error) {
+    return '打开浏览器或保存Cookies失败：$error';
+  }
+
+  @override
+  String get cookiesSavedSuccessfully => 'Cookies保存成功！';
+
+  @override
+  String get noCookiesWereCaptured => '没有捕获到Cookies。';
+
+  @override
+  String get warning => '警告';
+
+  @override
+  String get delete => '删除';
+
+  @override
   String get none => '无';
 }

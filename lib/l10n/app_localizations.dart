@@ -452,6 +452,42 @@ abstract class AppLocalizations {
   /// **'保存Cookies'**
   String get saveCookies;
 
+  /// No description provided for @error.
+  ///
+  /// In zh, this message translates to:
+  /// **'错误'**
+  String get error;
+
+  /// No description provided for @failedToOpenBrowserOrSaveCookies.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开浏览器或保存Cookies失败：{error}'**
+  String failedToOpenBrowserOrSaveCookies(Object error);
+
+  /// No description provided for @cookiesSavedSuccessfully.
+  ///
+  /// In zh, this message translates to:
+  /// **'Cookies保存成功！'**
+  String get cookiesSavedSuccessfully;
+
+  /// No description provided for @noCookiesWereCaptured.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有捕获到Cookies。'**
+  String get noCookiesWereCaptured;
+
+  /// No description provided for @warning.
+  ///
+  /// In zh, this message translates to:
+  /// **'警告'**
+  String get warning;
+
+  /// No description provided for @delete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除'**
+  String get delete;
+
   /// No description provided for @none.
   ///
   /// In zh, this message translates to:
