@@ -249,6 +249,16 @@ class WebCloneService {
     return taskDir;
   }
 
+  Future<void> _addAllLinks(PageInfo page, Function(String) onAddNewUrl) async {
+    final links = await page.page.evaluate<List<dynamic>>(
+      '() => Array.from(document.querySelectorAll("a[href]")).filter(a => ["http:", "https:"] .includes(a.protocol)).map(a => a.href)',
+    );
+    for (var link in links) {
+      final url = Uri.parse(link).toString();
+      onAddNewUrl(url);
+    }
+  }
+
   //爬取网站
   Future<(bool, String)> _scrawlSite(
     BrowserSession session,
@@ -269,14 +279,39 @@ class WebCloneService {
       //get title
       final title = await page.page.title ?? '';
       info.title = title;
-      // logger.info('获取title: ${info.title}');
-      //get all links from html
-      final links = await page.page.evaluate<List<dynamic>>(
-        '() => Array.from(document.querySelectorAll("a[href]")).filter(a => ["http:", "https:"] .includes(a.protocol)).map(a => a.href)',
-      );
-      for (var link in links) {
-        final url = Uri.parse(link).toString();
-        onAddNewUrl(url);
+      _addAllLinks(page, onAddNewUrl);
+      try {
+        while (true) {
+          final clicked = await page.page.evaluate<bool>(
+            r'''(() => {
+            function isRealHref(el){if(!el||el.tagName!=='A')return false;const href=(el.getAttribute('href')||'').trim();if(!href)return false;try{const u=new URL(href,document.baseURI);return u.protocol==='http:'||u.protocol==='https:';}catch(e){return false;}}
+            const NEXT_EXACT=/^(下一页|下一頁|下页|更多|Next|More|Older|next|more|older)$/i;
+            const NEXT_PARTIAL=/(下一页|下一頁|下页|更多|Next|More|Older|next|more|older)/i;
+            const links=Array.from(document.querySelectorAll('a,button'));
+            //by rel
+            const byRel=document.querySelector('a[rel=next]');
+            if(byRel && !(byRel.tagName==='A' && isRealHref(byRel))){byRel.click();return true;}
+            //by aria
+            const byAria=links.find(el=>NEXT_PARTIAL.test((el.getAttribute('aria-label')||el.title||'')) && !(el.tagName==='A' && isRealHref(el)));
+            if(byAria){byAria.click();return true;}
+            //by text
+            const byText=links.find(el=>NEXT_EXACT.test((el.textContent||'').trim()) && !(el.tagName==='A' && isRealHref(el)));
+            if(byText){byText.click();return true;}
+            //by css
+            const cssCandidates=['.next','.pagination-next','.ant-pagination-next','.el-pagination__next','[data-next=true]'];
+            for(const sel of cssCandidates){const el=document.querySelector(sel);
+            if(el && !(el.tagName==='A' && isRealHref(el))){el.click();return true;}}return false;})()''',
+          );
+          if (clicked != true) break;
+          await page.page.waitForNavigation(
+            wait: Until.networkIdle,
+            timeout: const Duration(seconds: 10),
+          );
+          await Future.delayed(const Duration(milliseconds: 1000));
+          _addAllLinks(page, onAddNewUrl);
+        }
+      } catch (e, s) {
+        logger.error('分页查找与点击失败: ${info.url}', error: e, stackTrace: s);
       }
       if (task.isUrlNeedCapture(info.url) && info.isCaptured == false) {
         try {
@@ -366,7 +401,6 @@ class WebCloneService {
     buf.writeln(
       '<div id="searchbar"><input id="search" type="text" placeholder="搜索标题或URL..." /></div>',
     );
-
     // 分组: 按标题拼音首字母 (A-Z), 其他归为 '#'
     final Map<String, List<WebInfo>> groups = <String, List<WebInfo>>{};
     for (final it in items) {
