@@ -6,10 +6,18 @@
 
 - **账号管理**: 管理不同平台的账号和凭据
 - **任务管理**: 创建和管理网页克隆任务
-- **网页克隆**: 支持单页面、多页面和全站克隆
-- **截图功能**: 自动捕获网页截图
-- **HTML保存**: 保存网页HTML内容
+- **网页爬取**:  爬取用户需要的网站，遍历网站中所有的链接地址
+- **截图功能**: 自动捕获网页截图 
 - **目录生成**: 自动生成网页目录文件
+
+## 为什么做这个
+不知道大家有没有经历过，曾经风靡一时的社交平台突然关闭，那些记录着我们青春的文字、照片，瞬间消失不见。我的校内网账号就是这样，关停后，所有的日志、照片都成了永远的遗憾。
+这件事让我意识到，在这个快速变化的时代，任何东西都可能转瞬即逝。QQ空间、微信公众号、各种内容平台，谁能保证它们永远存在呢？与其被动等待，不如主动出击！
+于是，我决定自己做一个工具，把那些我想留住的文字、图片，统统备份到本地！
+我的需求很简单：
+
+- 备份那些精彩的文章：比如雪球上释老毛的文章，每次读都受益匪浅，必须保存下来！
+- 突破订阅制平台的限制：花钱买了会员，却没时间看完所有内容？没关系，我把它们全部保存下来，慢慢享用！
 
 ## 系统要求
 
@@ -39,83 +47,6 @@ flutter run -d windows
 ```
 
 
-## 使用说明
-
-### 账号管理
-
-1. 点击"Account Management"进入账号管理页面
-2. 点击"Add Account"添加新账号
-3. 填写账号名称、用户名、密码和平台信息
-4. 可以编辑、删除和启用/禁用账号
-
-### 任务管理
-
-1. 点击"Task Management"进入任务管理页面
-2. 点击"Create Task"创建新任务
-3. 输入任务名称和网站URL
-4. 启动、暂停或删除任务
-
-
-## 输出文件
-
-克隆任务完成后，会在应用数据目录下生成以下文件：
-
-
-## 技术栈
-
-- **前端框架**: Flutter
-- **状态管理**: GetX
-- **本地存储**: Hive
-- **UI组件**: Material Design 3
-
-## 开发说明
-
-### 添加新功能
-
-1. 在`models/`目录下创建数据模型
-2. 在`services/`目录下创建对应的服务类
-3. 在`modules/`目录下创建UI页面
-4. 在`routes/`目录下添加路由配置
-
-### 数据库操作
-
-项目使用Hive作为本地数据库，所有模型类都需要：
-
-1. 继承`HiveObject`
-2. 使用`@HiveType`注解
-3. 为每个字段添加`@HiveField`注解
-
-## 许可证
-
-本项目采用MIT许可证。
-
-## 贡献
-
-欢迎提交Issue和Pull Request来改进这个项目。
-
-## 联系方式
-
-如有问题或建议，请通过GitHub Issues联系我们。
-
-## 多语言
-
-```
-https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization
-```
-
-fltter pub get 或者 flutter run会自动生成相关文件
-也可以通过 flutter gen-l10n  生成
-
-
-## todos
-1. 爬取方式可以分两种类型：
-    通用方式（现在的形式）
-    定制方式，不同的网站，定制化采集，同时保存makdown和图片
-
-1. chrome 资源不打进包里，打开软件时下载，减小包体(ok)
-
-
-
 ## 其它 
 
 ### 图标生成：
@@ -130,4 +61,51 @@ magick app4.svg -background none  -define icon:auto-resize="256,128,64,48,32,16"
 
 ```
 flutter packages pub run build_runner build
+
 ```
+
+### 多语言
+
+```
+https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization
+```
+
+fltter pub get 或者 flutter run会自动生成相关文件
+也可以通过 flutter gen-l10n  生成
+
+
+## 使用说明
+ 
+安装包地址：
+https://github.com/ftyszyx/WebCloner/releases
+
+启动
+第一次启动会下载一次chrome资源
+
+程序首页
+[图片]
+两个功能，一个是账号管理，一个是任务管理
+举例说明
+
+新浪博客（感觉快倒闭了）
+ 
+ 
+## 许可证
+
+本项目采用MIT许可证。
+
+## 贡献
+
+欢迎提交Issue和Pull Request来改进这个项目。
+
+## 联系方式
+
+如有问题或建议，请通过GitHub Issues联系我们。
+邮箱：whyzi@qq.com
+
+qq: 2246855973
+
+qq群： 572194495
+
+  
+
