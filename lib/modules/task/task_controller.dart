@@ -39,7 +39,8 @@ class TaskController extends GetxController {
     task.errorMessage = null;
     task.startedAt = null;
     task.completedAt = null;
-    await _webCloneService.restartTask(task);
+    task.status = TaskStatus.paused;
+    await _webCloneService.refreshTask(task);
     _taskService.updateTask(task);
   }
 

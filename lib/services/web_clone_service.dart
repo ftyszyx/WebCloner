@@ -66,12 +66,12 @@ class WebCloneService {
     }
   }
 
-  Future<void> restartTask(Task task) async {
+  Future<void> refreshTask(Task task) async {
     final outputPath = _getTaskOutputDir(task);
     if (Directory(outputPath).existsSync()) {
       await Directory(outputPath).delete(recursive: true);
     }
-    await addTask(task);
+    tasks.removeWhere((t) => t.id == task.id);
   }
 
   Future<void> addTask(Task task) async {
