@@ -74,20 +74,21 @@ fltter pub get 或者 flutter run会自动生成相关文件
 也可以通过 flutter gen-l10n  生成
 
 
+## 效果演示
+
+
+https://github.com/user-attachments/assets/1291a555-a71c-4572-ba52-96c6124aad75
+
+
+
 ## 使用说明
  
 安装包地址：
 https://github.com/ftyszyx/WebCloner/releases
 
-启动
-第一次启动会下载一次chrome资源
+https://ftyszyx.github.io/feishu-vitepress/Jgmydq1HpoXtvfxFqrKclioTnnf
 
-程序首页
-[图片]
-两个功能，一个是账号管理，一个是任务管理
-举例说明
 
-新浪博客（感觉快倒闭了）
  
  
 ## 许可证
@@ -112,5 +113,6 @@ qq群： 572194495
 ![qrcode_for_gh_ece64bbdb799_258](https://github.com/user-attachments/assets/c8e715dd-4d7f-4b8d-884d-67a2c29961b9)
 
   
+
 
 
