@@ -17,12 +17,14 @@ class WebInfo {
   String title;
   String url;
   String pngPath;
+  String urlHashcode;
   bool visited;
   bool isCaptured;
   WebInfo({
     required this.title,
     required this.url,
     required this.pngPath,
+    required this.urlHashcode,
     this.visited = false,
     this.isCaptured = false,
   });
@@ -31,6 +33,7 @@ class WebInfo {
     'title': title,
     'url': url,
     'pngPath': pngPath,
+    'urlHashcode': urlHashcode,
     'visited': visited,
     'isCaptured': isCaptured,
   };
@@ -38,6 +41,7 @@ class WebInfo {
   factory WebInfo.fromJson(Map<String, dynamic> json) => WebInfo(
     title: json['title'],
     url: json['url'],
+    urlHashcode: json['urlHashcode'],
     pngPath: json['pngPath'],
     visited: json['visited'] ?? false,
     isCaptured: json['isCaptured'] ?? false,
@@ -46,6 +50,7 @@ class WebInfo {
 
 class WebCloneService {
   static WebCloneService get instance => Get.find<WebCloneService>();
+  final ModelLog _log = ModelLog('WebCloneService', enable: true);
 
   List<Task> tasks = [];
   Future<void> init() async {}
@@ -61,8 +66,21 @@ class WebCloneService {
     }
   }
 
+  Future<void> restartTask(Task task) async {
+    final outputPath = _getTaskOutputDir(task);
+    if (Directory(outputPath).existsSync()) {
+      await Directory(outputPath).delete(recursive: true);
+    }
+    await addTask(task);
+  }
+
   Future<void> addTask(Task task) async {
     task.status = TaskStatus.pending;
+    if (tasks.any((t) => t.id == task.id)) {
+      _log.info('task already in tasks: ${task.id}');
+      return;
+    }
+    _log.info('add task: ${task.id}');
     tasks.add(task);
   }
 
@@ -71,7 +89,7 @@ class WebCloneService {
     try {
       ctx = await _prepareCloneContext(task);
       await _runMainLoop(ctx);
-      logger.info("任务结束");
+      _log.info("任务结束");
       task.status = TaskStatus.completed;
       TaskService.instance.completeTask(
         task.id,
@@ -81,11 +99,11 @@ class WebCloneService {
         ctx.outputPath,
       );
     } catch (e, s) {
-      logger.error('克隆网站失败: ${task.name}', error: e, stackTrace: s);
+      _log.error('克隆网站失败: ${task.name}', error: e, stackTrace: s);
       TaskService.instance.failTask(task.id, e.toString());
     } finally {
       if (ctx != null && ctx.validWebsList.isNotEmpty) {
-        logger.info("保存数据");
+        _log.info("保存数据");
         ctx.validWebsList.sort((a, b) {
           final String pinyinA = PinyinHelper.getPinyinE(a.title);
           final String pinyinB = PinyinHelper.getPinyinE(b.title);
@@ -100,8 +118,9 @@ class WebCloneService {
 
   Future<_CloneContext> _prepareCloneContext(Task task) async {
     TaskService.instance.updateTaskStatus(task.id, TaskStatus.running);
-    logger.info('开始克隆网站: ${task.name} url: ${task.url}');
+    _log.info('开始克隆网站: ${task.name} url: ${task.url}');
     final outputPath = await _createTaskOutputDir(task);
+    _createTaskHtmlDir(task);
     final validWebsList = await _getTaskHistory(task);
     validWebsList.removeWhere((x) => _checkUrlIsValid(x.url, task) == false);
     final needVisitWebInfos = Queue<WebInfo>();
@@ -116,6 +135,7 @@ class WebCloneService {
       if (x.visited && x.title.isNotEmpty) {
         visitedPages++;
       } else {
+        _log.info('validWebsList is not visited, add url: ${x.url}');
         needVisitWebInfos.add(x);
       }
     }
@@ -127,7 +147,7 @@ class WebCloneService {
         );
         cookies = account?.cookies ?? [];
       } catch (e) {
-        logger.error('读取账号Cookies失败: $e');
+        _log.error('读取账号Cookies失败: $e');
       }
     }
     final session = await BrowerService.instance.runBrowser(
@@ -146,6 +166,7 @@ class WebCloneService {
       session: session,
     );
     if (validWebsList.isEmpty) {
+      _log.info('validWebsList is empty, add new url: ${task.url}');
       ctx.addNewUrl(task.url);
     }
     return ctx;
@@ -174,7 +195,7 @@ class WebCloneService {
         break;
       }
       if (ctx.task.maxPages > 0 && ctx.capturedPages >= ctx.task.maxPages) {
-        logger.info('超过最大数量: ${ctx.task.maxPages}');
+        _log.info('超过最大数量: ${ctx.task.maxPages}');
         break;
       }
       if (active.isEmpty) {
@@ -187,8 +208,6 @@ class WebCloneService {
   Future<void> _startOne(_CloneContext ctx) async {
     if (ctx.needVisitWebInfos.isEmpty) return;
     final info = ctx.needVisitWebInfos.removeFirst();
-    info.visited = true;
-    ctx.visitedPages++;
     final (isOk, errMesg) = await _scrawlSite(
       ctx.session,
       info,
@@ -196,7 +215,10 @@ class WebCloneService {
       ctx.addNewUrl,
       ctx.task,
     );
+    info.visited = true;
+    ctx.visitedPages++;
     if (isOk) {
+      _log.info('scrawlSite success: ${info.url}');
       info.isCaptured = true;
       ctx.capturedPages++;
     }
@@ -237,17 +259,28 @@ class WebCloneService {
     puppeteer.Page page,
     Function(String) onAddNewUrl,
   ) async {
+    _log.info('添加所有链接');
     final links = await page.evaluate<List<dynamic>>(
-      '() => Array.from(document.querySelectorAll("a[href]")).filter(a => ["http:", "https:"] .includes(a.protocol)).map(a => a.href)',
+      r'''() => {
+        // console.log(`--- Extracting links from ${document.location.href} ---`);
+        const anchors = Array.from(document.querySelectorAll("a[href]"));
+        // console.log(`Found ${anchors.length} total <a> tags with href.`);
+        const filtered = anchors.filter(a => ["http:", "https:"].includes(a.protocol));
+        // console.log(`Found ${filtered.length} links with http/https protocol.`);
+        const urls = filtered.map(a => a.href);
+        console.log(`--- Finished extracting links, returning ${urls.length} urls. ---`);
+        return urls;
+      }''',
     );
     for (var link in links) {
       final url = Uri.parse(link).toString();
+      // logger.info('before addAllLinks: $url');
       onAddNewUrl(url);
     }
   }
 
   Future<void> _scrollToBottom(puppeteer.Page page) async {
-    logger.info('滚动到页面底部');
+    _log.info('滚动到页面底部');
     await page.evaluate('''
              async () => {
                const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -266,7 +299,7 @@ class WebCloneService {
   Future<void> _waitPageAllImagesLoaded(puppeteer.Page page, String url) async {
     try {
       //wait page all images loaded
-      logger.info('等待页面所有图片加载完成');
+      _log.info('等待页面所有图片加载完成');
       await page.waitForFunction('''
    () => {
      const images = Array.from(document.querySelectorAll('img'));
@@ -276,7 +309,7 @@ class WebCloneService {
    }
  ''', timeout: const Duration(seconds: 30));
     } catch (e, s) {
-      logger.error('等待页面所有图片加载完成失败: $url, ', error: e, stackTrace: s);
+      _log.error('等待页面所有图片加载完成失败: $url, ', error: e, stackTrace: s);
     }
   }
 
@@ -288,64 +321,114 @@ class WebCloneService {
     Function(String) onAddNewUrl,
     Task task,
   ) async {
-    logger.info('goto url: ${info.url}');
+    _log.info('goto url: ${info.url}');
     final page = await session.waitForNotBusyPage(cookies: cookies);
     try {
       page.inUse = true;
       await page.goto(
         info.url,
         wait: puppeteer.Until.domContentLoaded,
-        timeout: const Duration(minutes: 10),
+        timeout: const Duration(seconds: 30),
       );
+      //sav html to outputpath
       await _scrollToBottom(page);
+      await Future.delayed(const Duration(seconds: 1));
+      final htmlPath = _getTaskHtmlPath(task);
+      final htmlFile = File(path.join(htmlPath, '${info.urlHashcode}.html'));
+      await htmlFile.writeAsString(await page.content ?? '');
       //get title
       final title = await page.title ?? '';
       info.title = title;
-      _addAllLinks(page, onAddNewUrl);
+      _log.info('get title ok: $title');
+      _log.info('添加当前页面所有链接: ${page.url}');
+      await _addAllLinks(page, onAddNewUrl);
       try {
         while (true) {
-          final clicked = await page.evaluate<bool>(
-            r'''(() => {
-            function isRealHref(el){if(!el||el.tagName!=='A')return false;const href=(el.getAttribute('href')||'').trim();if(!href)return false;try{const u=new URL(href,document.baseURI);return u.protocol==='http:'||u.protocol==='https:';}catch(e){return false;}}
-            const NEXT_EXACT=/^(下一页|下一頁|下页|更多|Next|More|Older|next|more|older)$/i;
-            const NEXT_PARTIAL=/(下一页|下一頁|下页|更多|Next|More|Older|next|more|older)/i;
-            const links=Array.from(document.querySelectorAll('a,button'));
-            //by rel
-            const byRel=document.querySelector('a[rel=next]');
-            if(byRel && !(byRel.tagName==='A' && isRealHref(byRel))){byRel.click();return true;}
-            //by aria
-            const byAria=links.find(el=>NEXT_PARTIAL.test((el.getAttribute('aria-label')||el.title||'')) && !(el.tagName==='A' && isRealHref(el)));
-            if(byAria){byAria.click();return true;}
-            //by text
-            const byText=links.find(el=>NEXT_EXACT.test((el.textContent||'').trim()) && !(el.tagName==='A' && isRealHref(el)));
-            if(byText){byText.click();return true;}
-            //by css
-            const cssCandidates=['.next','.pagination-next','.ant-pagination-next','.el-pagination__next','[data-next=true]'];
-            for(const sel of cssCandidates){const el=document.querySelector(sel);
-            if(el && !(el.tagName==='A' && isRealHref(el))){el.click();return true;}}return false;})()''',
-          );
-          if (clicked != true) break;
-          await page.waitForNavigation(
-            wait: puppeteer.Until.networkIdle,
-            timeout: const Duration(seconds: 10),
-          );
-          await Future.delayed(const Duration(milliseconds: 1000));
-          _addAllLinks(page, onAddNewUrl);
+          _log.info("检查分页");
+          final clicked = await page.evaluate<bool>(r'''(() => {
+                console.log('--- Searching for next page button ---');
+                function isRealHref(el) {
+                    if (!el || el.tagName !== 'A') return false;
+                    const href = (el.getAttribute('href') || '').trim();
+                    if (!href || href.startsWith('javascript:')) return false;
+                    try {
+                        const u = new URL(href, document.baseURI);
+                        return u.protocol === 'http:' || u.protocol === 'https:';
+                    } catch (e) { return false; }
+                }
+                const isClickCandidate = (el) => el && !(el.tagName === 'A' && isRealHref(el));
+                function clickElement(foundEl) {
+                    if (!foundEl) return false;
+                    let target = foundEl;
+                    if (target.tagName !== 'A' && target.tagName !== 'BUTTON') {
+                        const inner = target.querySelector('a, button');
+                        if (inner) {
+                            console.log(`Container "${foundEl.tagName}" found, attempting to click inner "${inner.tagName}".`);
+                            target = inner;
+                        }
+                    }
+                    if (isClickCandidate(target)) {
+                        console.log('Clicking element:', target.outerHTML.substring(0, 150));
+                        target.click();
+                        return true;
+                    }
+                    console.log('Element found, but not a valid click candidate:', target.outerHTML.substring(0, 150));
+                    return false;
+                }
+                const NEXT_EXACT = /^(下一页|下一頁|下页|更多|Next|More|Older|next|more|older|加载更多|點擊查看更多|下一張|下一张|下一章)\s*(>|&gt;|»)?\s*$/i;
+                const NEXT_PARTIAL = /(下一页|下一頁|下页|更多|Next|More|Older|next|more|older|加载更多|點擊查看更多|下一張|下一张|下一章)/i;
+                const links = Array.from(document.querySelectorAll('a, button, [role=button], [class*=next], [class*=more]'));
+                // console.log(`Found ${links.length} potential nav elements.`);
+                const byRel = document.querySelector('a[rel=next]');
+                // console.log('Strategy 1 (rel=next): found ->', byRel ? byRel.outerHTML.substring(0, 100) : null);
+                if (clickElement(byRel)) return true;
+                const byAria = links.find(el => NEXT_PARTIAL.test((el.getAttribute('aria-label') || el.title || '')));
+                // console.log('Strategy 2 (aria/title): found ->', byAria ? byAria.outerHTML.substring(0, 100) : null);
+                if (clickElement(byAria)) return true;
+                const byText = links.find(el => NEXT_EXACT.test((el.textContent || '').trim()));
+                // console.log('Strategy 3 (text): found ->', byText ? byText.outerHTML.substring(0, 100) : null);
+                if (clickElement(byText)) return true;
+                const cssCandidates = ['.next', '.pagination-next', '.ant-pagination-next', '.el-pagination__next', '[data-next=true]', '.SG_pgnext'];
+                for (const sel of cssCandidates) {
+                    const el = document.querySelector(sel);
+                    console.log(`Strategy 4 (CSS "${sel}"): found ->`, el ? el.outerHTML.substring(0, 100) : null);
+                    if (clickElement(el)) return true;
+                }
+                console.log('--- No next page button found ---');
+                return false;
+              })()''');
+          if (clicked != true) {
+            _log.info('没找到分页按钮,退出');
+            break;
+          }
+          _log.info('点击分页按钮成功,等3s');
+          await Future.delayed(const Duration(seconds: 3));
+          await _addAllLinks(page, onAddNewUrl);
         }
       } catch (e, s) {
-        logger.error('分页查找与点击失败: ${info.url}', error: e, stackTrace: s);
+        _log.error('分页查找与点击失败: ${info.url}', error: e, stackTrace: s);
       }
       if (task.isUrlNeedCapture(info.url) && info.isCaptured == false) {
         await _scrollToBottom(page);
         await _waitPageAllImagesLoaded(page, info.url);
         try {
-          logger.info('开始截图: ${info.url}');
+          // Hide sticky and fixed elements to prevent them from appearing in the middle of the screenshot
+          _log.info('隐藏固定和粘性元素: ${info.url}');
+          await page.evaluate(r'''() => {
+            document.querySelectorAll('body *').forEach(el => {
+              const style = window.getComputedStyle(el);
+              if (style.position === 'fixed' || style.position === 'sticky') {
+                el.style.display = 'none';
+              }
+            });
+          }''');
+          _log.info('开始截图: ${info.url}');
           final bytes = await page.screenshot(fullPage: true);
           final file = File(info.pngPath);
           await file.writeAsBytes(bytes);
           return (true, "");
         } catch (e, s) {
-          logger.error('截图失败: ${info.url}, ', error: e, stackTrace: s);
+          _log.error('截图失败: ${info.url}, ', error: e, stackTrace: s);
           return (false, "截图失败: ${info.url}, $e");
         }
       } else {
@@ -358,6 +441,17 @@ class WebCloneService {
 
   String _getTaskHistoryFileListPath(Task task) {
     return path.join(_getTaskOutputDir(task), 'history.json');
+  }
+
+  void _createTaskHtmlDir(Task task) {
+    final dir = Directory(_getTaskHtmlPath(task));
+    if (!dir.existsSync()) {
+      dir.createSync(recursive: true);
+    }
+  }
+
+  String _getTaskHtmlPath(Task task) {
+    return path.join(_getTaskOutputDir(task), 'html');
   }
 
   Future<void> _saveTaskHistory(Task task, List<WebInfo> items) async {
@@ -389,14 +483,12 @@ class WebCloneService {
       '<style>body{max-width:1100px;margin:0 auto;padding:24px;font-family:system-ui}h1{margin:0 0 16px}#searchbar{position:sticky;top:0;background:#fff;padding:12px 0;z-index:10}#search{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px}#alpha-nav{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 16px}#alpha-nav a{display:inline-block;padding:6px 10px;border:1px solid #ddd;border-radius:6px;text-decoration:none;color:#333}#alpha-nav a:hover{background:#f5f5f5}.group{margin:18px 0 8px;border-bottom:1px solid #eee;padding-bottom:4px}.group-list{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}.item{border:1px solid #ddd;border-radius:6px;padding:10px}.item a{text-decoration:none;color:#0a58ca;word-break:break-all}.item small{color:#666}</style>',
     );
     buf.writeln('</head><body>');
-    buf.writeln('<h1>克隆页面索引</h1>');
-    buf.writeln(
-      '<div id="searchbar"><input id="search" type="text" placeholder="搜索标题或URL..." /></div>',
-    );
     // 分组: 按标题拼音首字母 (A-Z), 其他归为 '#'
     final Map<String, List<WebInfo>> groups = <String, List<WebInfo>>{};
+    var totalNum = 0;
     for (final it in items) {
       if (it.isCaptured == false) continue;
+      totalNum++;
       final String pinyin = PinyinHelper.getPinyinE(it.title);
       String letter = pinyin.isNotEmpty ? pinyin[0].toUpperCase() : '#';
       if (!RegExp(r'^[A-Z]$').hasMatch(letter)) {
@@ -404,6 +496,10 @@ class WebCloneService {
       }
       groups.putIfAbsent(letter, () => <WebInfo>[]).add(it);
     }
+    buf.writeln('<h1>克隆页面索引 共 $totalNum 个页面</h1>');
+    buf.writeln(
+      '<div id="searchbar"><input id="search" type="text" placeholder="搜索标题或URL..." /></div>',
+    );
     final List<String> order = [
       'A',
       'B',
@@ -453,11 +549,11 @@ class WebCloneService {
         final it = list[i];
         final pngName = path.basename(it.pngPath);
         final escTitle = _escapeHtml(it.title);
-        final escUrl = _escapeHtml(it.url);
+        // final escUrl = _escapeHtml(it.url);
         final dataTitle = _escapeHtml(it.title.toLowerCase());
         final dataUrl = _escapeHtml(it.url.toLowerCase());
         buf.writeln(
-          '<li class="item" data-title="$dataTitle" data-url="$dataUrl"><a href="resources/$pngName">$escTitle</a> — <small>$escUrl</small></li>',
+          '<li class="item" data-title="$dataTitle" data-url="$dataUrl"><a href="resources/$pngName">$escTitle</a> </li>',
         );
       }
       buf.writeln('</ul>');
@@ -510,21 +606,20 @@ q.addEventListener("input", applyFilter);
       }
       final Uri uri = Uri.parse(url);
       if (!task.allowedDomains.contains(uri.host)) {
+        // _log.info('url:$url 非法域名: ${uri.host}  允许的域名: ${task.allowedDomains.join(',')}');
         return false;
       }
       if (!task.isUrlValid(url)) {
+        // _log.info('url is not valid: $url');
         return false;
       }
       if (task.isUrlIgnore(url)) {
+        // _log.info('url is ignore: $url');
         return false;
       }
       return true;
     } catch (e, s) {
-      logger.error(
-        'Error checking URL is valid: $url',
-        error: e,
-        stackTrace: s,
-      );
+      _log.error('Error checking URL is valid: $url', error: e, stackTrace: s);
       return false;
     }
   }
@@ -557,24 +652,31 @@ class _CloneContext {
 
   void addNewUrl(String url) {
     //url 去掉#后面的字符
+    // logger.info('addNewUrl: $url');
     url = url.split('#')[0];
     url = url.replaceAll('#', '');
     if (validWebDic.containsKey(url)) return;
     if (svc._checkUrlIsValid(url, task) == false) return;
     final info = WebInfo(
       url: url,
+      urlHashcode: url.hashCode.toString(),
       pngPath: svc._getPngPath(task, url),
       title: '',
     );
     if (File(info.pngPath).existsSync()) {
       info.isCaptured = true;
+      logger.info('addNewUrl: $url, path: ${info.pngPath} isCaptured: true');
       if (info.title.isNotEmpty) {
         info.visited = true;
         visitedPages++;
       }
       capturedPages++;
-    } else {
+    }
+    if (!info.visited) {
       needVisitWebInfos.add(info);
+      logger.info(
+        'addNewUrl: $url, needVisitWebInfos: ${needVisitWebInfos.length}',
+      );
     }
     validWebsList.add(info);
     validWebDic[url] = info;

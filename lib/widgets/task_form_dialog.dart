@@ -79,6 +79,7 @@ class TaskFormDialog extends StatelessWidget {
                 children: [
                   const SizedBox(height: 16),
                   TextFormField(
+
                     controller: controller.nameController,
                     decoration: InputDecoration(
                       labelText: l10n.taskName,
@@ -99,6 +100,42 @@ class TaskFormDialog extends StatelessWidget {
                       }
                       return null;
                     },
+                  ),
+                  const SizedBox(height: 16),
+                  Obx(
+                    () => DropdownButtonFormField<String?>(
+                      initialValue:
+                          controller.accounts.any(
+                            (a) => a.id == controller.selectedAccountId.value,
+                          )
+                          ? controller.selectedAccountId.value
+                          : null,
+                      decoration: InputDecoration(
+                        labelText: l10n.accountForCookies,
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
+                        prefixIcon: const Icon(Icons.account_circle_outlined),
+                        filled: true,
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      items: [
+                        DropdownMenuItem(value: null, child: Text(l10n.none)),
+                        ...controller.accounts.map(
+                          (account) => DropdownMenuItem(
+                            value: account.id,
+                            child: Text(account.name),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        controller.selectedAccountId.value = value;
+                      },
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -425,42 +462,6 @@ class TaskFormDialog extends StatelessWidget {
                       hintText: l10n.maxConcurrentTasksHint,
                     ),
                     keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16),
-                  Obx(
-                    () => DropdownButtonFormField<String?>(
-                      initialValue:
-                          controller.accounts.any(
-                            (a) => a.id == controller.selectedAccountId.value,
-                          )
-                          ? controller.selectedAccountId.value
-                          : null,
-                      decoration: InputDecoration(
-                        labelText: l10n.accountForCookies,
-                        floatingLabelBehavior: FloatingLabelBehavior.always,
-                        prefixIcon: const Icon(Icons.account_circle_outlined),
-                        filled: true,
-                        fillColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      items: [
-                        DropdownMenuItem(value: null, child: Text(l10n.none)),
-                        ...controller.accounts.map(
-                          (account) => DropdownMenuItem(
-                            value: account.id,
-                            child: Text(account.name),
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        controller.selectedAccountId.value = value;
-                      },
-                    ),
                   ),
                 ],
               ),

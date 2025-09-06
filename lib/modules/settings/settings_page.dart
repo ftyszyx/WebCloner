@@ -49,7 +49,7 @@ class SettingsPage extends GetView<SettingsController> {
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.folder_open),
-                  onPressed: () => controller.chooseOutputDir(),
+                  onPressed: () => controller.chooseOutputDir(controller.outputDir.value),
                   tooltip: l10n.chooseDir,
                 ),
               ),

@@ -21,6 +21,10 @@ class BrowserSession {
     }
   }
 
+  void onConsole(puppeteer.ConsoleMessage msg) {
+    // logger.info('[JS_CONSOLE]: ${msg.text}');
+  }
+
   Future<puppeteer.Page> waitForNotBusyPage({
     List<puppeteer_network.Cookie>? cookies,
     Function(puppeteer.Request)? onRequest,
@@ -34,6 +38,17 @@ class BrowserSession {
           page = pages.firstWhere((element) => !element.inUse);
           await _setCookies(page, cookies);
           page.inUse = true;
+          page.onConsole.listen(onConsole);
+          page.onRequest.listen((request) {
+            if (onRequest != null) {
+              onRequest(request);
+            }
+          });
+          page.onResponse.listen((response) {
+            if (onResponse != null) {
+              onResponse(response);
+            }
+          });
           return page;
         } else {
           throw Exception('没有找到可用的页面');
@@ -80,6 +95,7 @@ class BrowserSession {
   }) async {
     // logger.info('添加页面');
     final page = await browser!.newPage();
+    page.onConsole.listen(onConsole);
     page.onRequest.listen((request) {
       if (onRequest != null) {
         onRequest(request);

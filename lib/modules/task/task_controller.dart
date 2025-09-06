@@ -32,6 +32,17 @@ class TaskController extends GetxController {
     await _webCloneService.addTask(task);
   }
 
+  void restartTask(Task task) async {
+    task.totalPages = 0;
+    task.visitedNum = 0;
+    task.captureNum = 0;
+    task.errorMessage = null;
+    task.startedAt = null;
+    task.completedAt = null;
+    await _webCloneService.restartTask(task);
+    _taskService.updateTask(task);
+  }
+
   Future<void> pauseTask(Task task) async {
     await _taskService.pauseTask(task.id);
   }

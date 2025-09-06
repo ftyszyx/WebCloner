@@ -126,6 +126,11 @@ class TaskPage extends GetView<TaskController> {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                IconButton(
+                                  icon: const Icon(Icons.refresh),
+                                  onPressed: () => controller.restartTask(task),
+                                  color: Colors.blue,
+                                ),
                                 if (task.status != TaskStatus.running)
                                   IconButton(
                                     icon: const Icon(Icons.play_arrow),

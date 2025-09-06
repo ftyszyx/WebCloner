@@ -21,8 +21,10 @@ class SettingsController extends GetxController {
     Get.updateLocale(Locale(value));
   }
 
-  Future<void> chooseOutputDir() async {
-    final String? selected = await FilePicker.platform.getDirectoryPath();
+  Future<void> chooseOutputDir(String? initialDirectory) async {
+    final String? selected = await FilePicker.platform.getDirectoryPath(
+      initialDirectory: initialDirectory,
+    );
     if (selected != null && selected.isNotEmpty) {
       _cfg.setOutputDir(selected);
       outputDir.value = selected;

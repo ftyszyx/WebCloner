@@ -190,5 +190,30 @@ class Log {
   }
 }
 
+class ModelLog {
+  final String module;
+  final bool enable;
+  ModelLog(this.module, {this.enable = false});
+  void info(String message) {
+    if (enable) {
+      logger.info('[$module] $message');
+    }
+  }
+
+  void error(String message, {Object? error, StackTrace? stackTrace}) {
+      logger.error('[$module] $message', error: error, stackTrace: stackTrace);
+  }
+
+  void warn(String message) {
+      logger.warn('[$module] $message');
+  }
+
+  void debug(String message) {
+    if (enable) {
+      logger.d('[$module] $message');
+    }
+  }
+}
+
 // Global instance for easy access
 final logger = Log();
